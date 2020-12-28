@@ -5,14 +5,27 @@ import smtplib
 from email.message import EmailMessage
 import base64
 
+import password_enc
 
 GMAIL_USER = 'mjfullstack@gmail.com'
+GMAIL_PASSWORD = None
 
-with open('cred.txt', 'r') as f:
-    GMAIL_PASSWORD = base64.b64decode(f.readlines()[0]).decode('utf-8')
+
+def read_pwd():
+    global GMAIL_PASSWORD
+    with open('cred.txt', 'r') as f:
+        pwd = f.read()
+        if pwd:
+            GMAIL_PASSWORD = base64.b64decode(pwd).decode('utf-8')
+
+
+read_pwd()
+
+if not GMAIL_PASSWORD:
+    password_enc.enc_pwd()
+    read_pwd()
 
 IP = get('https://api.ipify.org').text
-print('Public IP address is: {}'.format(IP))
 
 
 def send_notification(new_ip):
@@ -33,6 +46,7 @@ def send_notification(new_ip):
 
 def check_ip():
     # Check previous IP
+    print('Public IP address is: {}'.format(IP))
     with open('ip.txt', 'r') as rf:
         line = rf.readlines()
         if not line:
@@ -57,7 +71,9 @@ def check_ip():
                 send_notification(IP)
                 print('IP has changed; new IP recorded; notification sent')
         check_ip()
-    print('Check completed.')
+    else:
+        print('No change')
+    print('Check completed. (Next check in 6 hours...)')
     time.sleep(21600)
     check_ip()
 
