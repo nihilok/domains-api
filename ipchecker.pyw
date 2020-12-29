@@ -1,4 +1,5 @@
 import os
+import subprocess
 import time
 import logging
 
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 GMAIL_USER = 'mjfullstack@gmail.com'
 GMAIL_PASSWORD = None
-
+FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 import getpass
 USER_NAME = getpass.getuser()
@@ -23,14 +24,11 @@ USER_NAME = getpass.getuser()
 startup_script = r'''f:
 cd Coding\ipChecker
 c:\Users\%s\AppData\Local\Programs\Python\Python39\pythonw.exe ipchecker.pyw
-timeout 2 >nul
-exit
+pause
 ''' % USER_NAME
 
 
-def add_to_startup(file_path=""):
-    if file_path == "":
-        file_path = os.path.dirname(os.path.realpath(__file__))
+def add_to_startup():
     bat_path = r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup' % USER_NAME
     if not os.path.isfile(bat_path + '\\' + "ipchecker.bat"):
         with open(bat_path + '\\' + "ipchecker.bat", "w+") as bat_file:
@@ -42,17 +40,17 @@ def add_to_startup(file_path=""):
 
 def read_pwd():
     global GMAIL_PASSWORD
-    with open('cred.txt', 'r') as f:
-        pwd = f.read()
-        if pwd:
-            GMAIL_PASSWORD = base64.b64decode(pwd).decode('utf-8')
+    if os.path.isfile(FILE_PATH + '\\' + "cred.txt"):
+        with open('cred.txt', 'r') as f:
+            pwd = f.read()
+            if pwd:
+                GMAIL_PASSWORD = base64.b64decode(pwd).decode('utf-8')
+    else:
+        logger.warning('No encoded email password stored. Running script to create one...')
+        subprocess.call(r'start /wait python password_enc.py', shell=True)
+        time.sleep(3)
+        read_pwd()
 
-
-read_pwd()
-
-if not GMAIL_PASSWORD:
-    password_enc.enc_pwd()
-    read_pwd()
 
 IP = get('https://api.ipify.org').text
 
@@ -75,21 +73,25 @@ def send_notification(new_ip):
 
 
 def check_ip():
-    # Check previous IP
     logger.info('Public IP address is: {}'.format(IP))
-    with open('ip.txt', 'r') as rf:
-        line = rf.readlines()
-        if not line:
-            first_run = True
-        elif line[0] == IP:
-            first_run = False
-            change = False
-        else:
-            logger.info(f'Old IP: {line[0]}')
-            logger.info(f'New IP: {IP}')
-            first_run = False
-            change = True
-
+    # Check for ip.txt
+    if os.path.isfile(FILE_PATH + '\\' + "ip.txt"):
+        # Check previous IP
+        with open('ip.txt', 'r') as rf:
+            line = rf.readlines()
+            if not line:
+                first_run = True
+            elif line[0] == IP:
+                first_run = False
+                change = False
+                logger.info('IP has not changed')
+            else:
+                logger.info(f'Old IP: {line[0]}')
+                logger.info(f'New IP: {IP}')
+                first_run = False
+                change = True
+    else:
+        first_run = True
     if first_run or change:
         # Write new IP
         with open('ip.txt', 'w') as wf:
@@ -101,13 +103,24 @@ def check_ip():
                 send_notification(IP)
                 logger.info('IP has changed; new IP recorded')
         check_ip()
-    else:
-        logger.info('No change')
     logger.info('Check completed. (Next check in 6 hours...)')
     time.sleep(21600)
     check_ip()
 
 
+# STOP = 0
+#
+#
+# def debug():
+#     global STOP
+#     while STOP <= 30:
+#         logger.info('Script running')
+#         time.sleep(1)
+#         STOP += 1
+#         debug()
+
+
 if __name__ == '__main__':
     add_to_startup()
+    read_pwd()
     check_ip()
