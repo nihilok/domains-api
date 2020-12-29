@@ -19,7 +19,7 @@ def get_pwd():
 
 def auto_edit_forwarding(ip):
     opts = Options()
-    # opts.headless = True
+    opts.headless = True
     browser = Firefox(options=opts)
     browser.get('https://stackoverflow.com')
     login_link = browser.find_element_by_class_name('login-link')
