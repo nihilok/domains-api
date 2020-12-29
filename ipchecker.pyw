@@ -7,6 +7,7 @@ import base64
 from requests import get
 from email.message import EmailMessage
 
+from ipchanger import auto_edit_forwarding
 
 logging.basicConfig(filename='ipchecker.log', level=logging.INFO,
                     format='%(asctime)s|%(levelname)s|%(message)s')
@@ -101,7 +102,10 @@ def check_ip():
                 wf.write(IP)
                 send_notification(IP)
                 logger.info('IP has changed; new IP recorded')
-        check_ip()
+                try:
+                    logging.info(auto_edit_forwarding(IP))
+                except Exception as e:
+                    logging.warning(f'IP not changed at domains.google.com: {e}')
     logger.info('Check completed. (Next check in 6 hours...)')
     time.sleep(21600)
     check_ip()
