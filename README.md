@@ -7,7 +7,7 @@ To facilitate running a home web server behind a router, this program checks to 
 Install requirements:
 `pip install -r requirements.txt`
 
-Download `geckodriver.exe` (Webdriver for Firefox) from https://github.com/mozilla/geckodriver/releases and add location to PATH.
+Download `geckodriver.exe` (Webdriver for Firefox) from **[here](https://github.com/mozilla/geckodriver/releases)** and add location to PATH.
 
 Use the `start.bat` file to start the program. A script is then automatically added to startup folder and the program will run on user login.
 
