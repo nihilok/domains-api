@@ -14,7 +14,7 @@ def get_pwd():
             pwd = f.read()
             if pwd:
                 pwd = base64.b64decode(pwd).decode('utf-8')
-    return pwd
+        return pwd
 
 
 def auto_edit_forwarding(ip):
@@ -43,7 +43,7 @@ def auto_edit_forwarding(ip):
     for btn in edit_btn:
         try:
             btn.click()
-        except StaleElementReferenceException as e:
+        except StaleElementReferenceException:
             continue
     time.sleep(.5)
     ip_input = browser.find_element_by_id('mat-input-0')
