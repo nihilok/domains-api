@@ -1,9 +1,20 @@
+import base64
+import os
 import time
 
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver import Firefox
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.options import Options
+
+
+def get_pwd():
+    if os.path.isfile("cred.txt"):
+        with open('cred.txt', 'r') as f:
+            pwd = f.read()
+            if pwd:
+                pwd = base64.b64decode(pwd).decode('utf-8')
+    return pwd
 
 
 def auto_edit_forwarding(ip):
@@ -20,7 +31,7 @@ def auto_edit_forwarding(ip):
     input_element.send_keys(Keys.ENTER)
     time.sleep(1)
     input_element = browser.find_element_by_class_name('whsOnd')
-    input_element.send_keys('2cg6xpo"')
+    input_element.send_keys(get_pwd())
     input_element.send_keys(Keys.ENTER)
     time.sleep(1)
     browser.get('https://domains.google.com')
@@ -33,10 +44,12 @@ def auto_edit_forwarding(ip):
         try:
             btn.click()
         except StaleElementReferenceException as e:
-            print(e)
+            continue
     time.sleep(.5)
     ip_input = browser.find_element_by_id('mat-input-0')
     ip_input.clear()
     ip_input.send_keys(ip)
     ip_input.send_keys(Keys.ENTER)
+    time.sleep(2)
+    browser.quit()
     return f'IP changed to {ip} at domains.google.com'
