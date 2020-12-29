@@ -1,9 +1,9 @@
 # ipChecker
 To facilitate running a home web server behind a router, this program checks to see if external IP has changed, alerts user via email, and automates editing forwarding rules on domains.google.com.
 
-(Currently set up for Windows/Firefox, with my own Gmail address - change GMAIL_USER variable and allow less secure apps on your Google account to use with your own email.)
-
 ### Installation:
+(Currently set up for Windows/Firefox, with my own Gmail address - change `GMAIL_USER` variable in `ipchecker.pyw` and allow less secure apps on your Google account to use.)
+
 Install requirements:
 `pip install -r requirements.txt`
 
