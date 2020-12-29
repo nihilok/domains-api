@@ -33,8 +33,6 @@ def add_to_startup():
         with open(bat_path + '\\' + "ipchecker.bat", "w+") as bat_file:
             bat_file.write(startup_script)
         logger.info('IP checker added to Startup folder.')
-    else:
-        logger.info('IP checker is already in Startup folder.')
 
 
 def read_pwd():
@@ -73,8 +71,9 @@ def send_notification(new_ip):
 
 
 def check_ip():
+    logger.info('Checking IP...')
     logger.info('Public IP address is: {}'.format(IP))
-    # Check for ip.txt
+    # Check for ip.txt and create if doesn't exist or edit if IP changes
     if os.path.isfile(FILE_PATH + '\\' + "ip.txt"):
         # Check previous IP
         with open('ip.txt', 'r') as rf:
@@ -100,8 +99,8 @@ def check_ip():
                 logger.info('First IP recorded')
             elif change:
                 wf.write(IP)
-                send_notification(IP)
                 logger.info('IP has changed; new IP recorded')
+                send_notification(IP)
                 try:
                     logging.info(auto_edit_forwarding(IP))
                 except Exception as e:
@@ -112,6 +111,7 @@ def check_ip():
 
 
 if __name__ == '__main__':
+    logger.info('Process started...')
     add_to_startup()
     read_pwd()
     check_ip()
