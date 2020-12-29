@@ -19,7 +19,7 @@ def get_pwd():
 
 def auto_edit_forwarding(ip):
     opts = Options()
-    opts.headless = True
+    # opts.headless = True
     browser = Firefox(options=opts)
     browser.get('https://stackoverflow.com')
     login_link = browser.find_element_by_class_name('login-link')
@@ -33,12 +33,12 @@ def auto_edit_forwarding(ip):
     input_element = browser.find_element_by_class_name('whsOnd')
     input_element.send_keys(get_pwd())
     input_element.send_keys(Keys.ENTER)
-    time.sleep(1)
+    time.sleep(.5)
     browser.get('https://domains.google.com')
-    time.sleep(5)
+    time.sleep(4.5)
     site_link = browser.find_element_by_link_text('mjfullstack.com')
     site_link.click()
-    time.sleep(2)
+    time.sleep(1.5)
     edit_btn = browser.find_elements_by_class_name('mat-button')
     for btn in edit_btn:
         try:
@@ -50,6 +50,10 @@ def auto_edit_forwarding(ip):
     ip_input.clear()
     ip_input.send_keys(ip)
     ip_input.send_keys(Keys.ENTER)
-    time.sleep(2)
+    time.sleep(.5)
     browser.quit()
     return f'IP changed to {ip} at domains.google.com'
+
+
+if __name__ == '__main__':
+    auto_edit_forwarding('86.150.163.169')
