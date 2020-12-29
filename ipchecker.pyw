@@ -1,17 +1,15 @@
 import os
 import subprocess
-import time
 import logging
-
-from requests import get
+import time
 import smtplib
-from email.message import EmailMessage
 import base64
+from requests import get
+from email.message import EmailMessage
 
-import password_enc
 
 logging.basicConfig(filename='ipchecker.log', level=logging.INFO,
-                    format='%(asctime)s:%(levelname)s:%(message)s')
+                    format='%(asctime)s|%(levelname)s|%(message)s')
 logger = logging.getLogger(__name__)
 
 GMAIL_USER = 'mjfullstack@gmail.com'
@@ -23,9 +21,9 @@ USER_NAME = getpass.getuser()
 
 startup_script = r'''f:
 cd Coding\ipChecker
-c:\Users\%s\AppData\Local\Programs\Python\Python39\pythonw.exe ipchecker.pyw
-pause
-''' % USER_NAME
+pythonw ipchecker.pyw
+exit
+'''
 
 
 def add_to_startup():
@@ -45,6 +43,7 @@ def read_pwd():
             pwd = f.read()
             if pwd:
                 GMAIL_PASSWORD = base64.b64decode(pwd).decode('utf-8')
+                logging.info('Password read successfully')
     else:
         logger.warning('No encoded email password stored. Running script to create one...')
         subprocess.call(r'start /wait python password_enc.py', shell=True)
@@ -106,18 +105,6 @@ def check_ip():
     logger.info('Check completed. (Next check in 6 hours...)')
     time.sleep(21600)
     check_ip()
-
-
-# STOP = 0
-#
-#
-# def debug():
-#     global STOP
-#     while STOP <= 30:
-#         logger.info('Script running')
-#         time.sleep(1)
-#         STOP += 1
-#         debug()
 
 
 if __name__ == '__main__':
