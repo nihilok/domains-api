@@ -4,10 +4,8 @@ import logging
 import time
 import smtplib
 import base64
-from requests import get
+from requests import get, post
 from email.message import EmailMessage
-
-from ipchanger import auto_edit_forwarding
 
 logging.basicConfig(filename='ipchecker.log', level=logging.INFO,
                     format='%(asctime)s|%(levelname)s|%(message)s')
@@ -16,6 +14,7 @@ logger = logging.getLogger(__name__)
 GMAIL_USER = 'mjfullstack@gmail.com'
 GMAIL_PASSWORD = None
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
+REQ_URL = 'https://vfLzzIJ7fsF70BSO:qCgyuxax90hqx0Yc@domains.google.com/nic/update?hostname=@.mjfullstack.com&myip='
 
 import getpass
 USER_NAME = getpass.getuser()
@@ -102,7 +101,8 @@ def check_ip():
                 logger.info('IP has changed; new IP recorded')
                 send_notification(IP)
                 try:
-                    logging.info(auto_edit_forwarding(IP))
+                    req = post(f'{REQ_URL}{IP}')
+                    logging.info(f'Response from domains api: {req.content}')
                 except Exception as e:
                     logging.warning(f'IP not changed at domains.google.com: {e}')
     logger.info('Check completed. (Next check in 6 hours...)')
