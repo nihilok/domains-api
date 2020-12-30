@@ -62,7 +62,7 @@ def auto_edit_forwarding(ip):
         site_link = browser.find_element_by_partial_link_text('mjfullstack')
         site_link.click()
         time.sleep(5)
-        edit_btn = browser.find_elements_by_class_name('mat-button')
+        edit_btn = browser.find_elements_by_name('edit')
         for btn in edit_btn:
             try:
                 btn.click()
@@ -81,7 +81,7 @@ def auto_edit_forwarding(ip):
     ip_input.send_keys(Keys.ENTER)
     time.sleep(2)
     browser.quit()
-    display.stop()
+    # display.stop()
     logging.info('Process completed')
     return f'IP changed to {ip} at domains.google.com'
 
