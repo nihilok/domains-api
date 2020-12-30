@@ -5,10 +5,8 @@ import time
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.firefox.options import Options
+# from selenium.webdriver.firefox.options import Options
 
-driver = webdriver.Remote(
-  desired_capabilities=webdriver.DesiredCapabilities.HTMLUNIT)
 
 def get_pwd():
     if os.path.isfile("cred.txt"):
