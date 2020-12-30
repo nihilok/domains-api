@@ -7,17 +7,13 @@ import base64
 from requests import get, post
 from email.message import EmailMessage
 
-from ipchanger import auto_edit_forwarding
-
-
 logging.basicConfig(filename='ipchecker.log', level=logging.INFO,
                     format='[%(levelname)s]|%(asctime)s|%(message)s')
 logger = logging.getLogger(__name__)
 
 GMAIL_USER = 'mjfullstack@gmail.com'
 GMAIL_PASSWORD = None
-FILE_PATH = os.path.dirname(os.path.realpath(__file__))
-
+REQ_URL = 'https://vfLzzIJ7fsF70BSO:qCgyuxax90hqx0Yc@domains.google.com/nic/update?hostname=@.mjfullstack.com&myip='
 
 def read_pwd():
     global GMAIL_PASSWORD
@@ -86,7 +82,7 @@ def check_ip():
                 logger.info('IP has changed; new IP recorded locally')
                 send_notification(IP)
                 try:
-                    req = post(f'https://vfLzzIJ7fsF70BSO:qCgyuxax90hqx0Yc@domains.google.com/nic/update?hostname=@.mjfullstack.com&myip={IP}')
+                    req = post(f'{REQ_URL}{IP}')
                     logging.info(f'Response from domains api: {req.content}')
                 except Exception as e:
                     logging.warning(f'Something went wrong: {e}')
