@@ -44,7 +44,7 @@ def auto_edit_forwarding(ip):
         input_element.send_keys(Keys.ENTER)
         logging.info('username entered')
         time.sleep(5)
-        input_element = browser.find_element_by_class_name('whsOnd')
+        input_element = browser.find_element_by_name('password')
         input_element.send_keys(get_pwd())
         input_element.send_keys(Keys.ENTER)
         logging.info('password entered')
