@@ -83,13 +83,13 @@ def check_ip():
                 logger.info('First IP recorded')
             elif change:
                 wf.write(IP)
-                logger.info('IP has changed; new IP recorded')
+                logger.info('IP has changed; new IP recorded locally')
                 send_notification(IP)
                 try:
                     req = post(f'https://vfLzzIJ7fsF70BSO:qCgyuxax90hqx0Yc@domains.google.com/nic/update?hostname=@.mjfullstack.com&myip={IP}')
-                    logging.info(f'{req.content}')
+                    logging.info(f'Response from domains api: {req.content}')
                 except Exception as e:
-                    logging.warning(f'IP not changed at domains.google.com: {e}')
+                    logging.warning(f'Something went wrong: {e}')
     logger.info('Check completed.')
 
 
