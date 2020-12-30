@@ -9,27 +9,19 @@ from email.message import EmailMessage
 
 from ipchanger import auto_edit_forwarding
 
+
 logging.basicConfig(filename='ipchecker.log', level=logging.INFO,
-                    format='%(asctime)s|%(levelname)s|%(message)s')
+                    format='[%(levelname)s]|%(asctime)s|%(message)s')
 logger = logging.getLogger(__name__)
 
 GMAIL_USER = 'mjfullstack@gmail.com'
 GMAIL_PASSWORD = None
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
-import getpass
-USER_NAME = getpass.getuser()
-
-startup_script = r'''f:
-cd Coding\ipChecker
-pythonw ipchecker.pyw
-exit
-'''
-
 
 def read_pwd():
     global GMAIL_PASSWORD
-    if os.path.isfile(FILE_PATH + '\\' + "cred.txt"):
+    if os.path.isfile("cred.txt"):
         with open('cred.txt', 'r') as f:
             pwd = f.read()
             if pwd:
@@ -66,7 +58,7 @@ def check_ip():
     logger.info('Checking IP...')
     logger.info('Public IP address is: {}'.format(IP))
     # Check for ip.txt and create if doesn't exist or edit if IP changes
-    if os.path.isfile(FILE_PATH + '\\' + "ip.txt"):
+    if os.path.isfile("ip.txt"):
         # Check previous IP
         with open('ip.txt', 'r') as rf:
             line = rf.readlines()
@@ -98,9 +90,7 @@ def check_ip():
                     logging.info(f'{req.content}')
                 except Exception as e:
                     logging.warning(f'IP not changed at domains.google.com: {e}')
-    logger.info('Check completed. (Next check in 6 hours...)')
-    time.sleep(21600)
-    check_ip()
+    logger.info('Check completed.')
 
 
 if __name__ == '__main__':
