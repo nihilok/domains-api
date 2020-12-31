@@ -25,7 +25,8 @@ def read_pwd():
                 logging.info('Password read successfully')
     else:
         logger.warning('No encoded email password stored. Running script to create one...')
-        subprocess.call(r'python3 password_enc.py', shell=True)
+        print(os.getcwd())
+        subprocess.call(f'python3 {os.getcwd()}/password_enc.py', shell=True)
         time.sleep(3)
         read_pwd()
 
