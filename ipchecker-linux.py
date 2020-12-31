@@ -1,21 +1,27 @@
 #!/usr/bin/python3
 import os
+import sys
 import subprocess
 import logging
 import time
+from datetime import datetime
 import smtplib
 import base64
 from requests import get, post
 from email.message import EmailMessage
-
-logging.basicConfig(filename='ipchecker.log', level=logging.INFO,
-                    format='[%(levelname)s]|%(asctime)s|%(message)s')
-logger = logging.getLogger(__name__)
+from password_enc import enc_pwd
 
 GMAIL_USER = 'mjfullstack@gmail.com'
 GMAIL_PASSWORD = None
 REQ_URL = 'https://vfLzzIJ7fsF70BSO:qCgyuxax90hqx0Yc@domains.google.com/nic/update?hostname=@.mjfullstack.com&myip='
+os.chdir(os.path.dirname(sys.argv[0]))
 CWD = os.getcwd()
+print(f'ipChecker ran at {datetime.now().strftime("%H:%M:%S")}')
+
+logging.basicConfig(filename=f'{CWD}/ipchecker.log', level=logging.INFO,
+                    format='[%(levelname)s]|%(asctime)s|%(message)s')
+logger = logging.getLogger(__name__)
+
 
 def read_pwd():
     global GMAIL_PASSWORD
@@ -27,8 +33,7 @@ def read_pwd():
                 logging.info('Password read successfully')
     else:
         logger.warning('No encoded email password stored. Running script to create one...')
-        subprocess.call(f'python3 {CWD}/password_enc.py', shell=True)
-        time.sleep(3)
+        enc_pwd()
         read_pwd()
 
 
