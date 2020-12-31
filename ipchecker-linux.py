@@ -15,19 +15,19 @@ logger = logging.getLogger(__name__)
 GMAIL_USER = 'mjfullstack@gmail.com'
 GMAIL_PASSWORD = None
 REQ_URL = 'https://vfLzzIJ7fsF70BSO:qCgyuxax90hqx0Yc@domains.google.com/nic/update?hostname=@.mjfullstack.com&myip='
+CWD = ox.getcwd()
 
 def read_pwd():
     global GMAIL_PASSWORD
-    if os.path.isfile("cred.txt"):
-        with open('cred.txt', 'r') as f:
+    if os.path.isfile(f"{CWD}/cred.txt"):
+        with open(f'{CWD}/cred.txt', 'r') as f:
             pwd = f.read()
             if pwd:
                 GMAIL_PASSWORD = base64.b64decode(pwd).decode('utf-8')
                 logging.info('Password read successfully')
     else:
         logger.warning('No encoded email password stored. Running script to create one...')
-        print(os.getcwd())
-        subprocess.call(f'python3 {os.getcwd()}/password_enc.py', shell=True)
+        subprocess.call(f'python3 {CWD}/password_enc.py', shell=True)
         time.sleep(3)
         read_pwd()
 
@@ -56,9 +56,9 @@ def check_ip():
     logger.info('Checking IP...')
     logger.info('Public IP address is: {}'.format(IP))
     # Check for ip.txt and create if doesn't exist or edit if IP changes
-    if os.path.isfile("ip.txt"):
+    if os.path.isfile(f"{CWD}/ip.txt"):
         # Check previous IP
-        with open('ip.txt', 'r') as rf:
+        with open(f'{CWD}/ip.txt', 'r') as rf:
             line = rf.readlines()
             if not line:
                 first_run = True
@@ -75,7 +75,7 @@ def check_ip():
         first_run = True
     if first_run or change:
         # Write new IP
-        with open('ip.txt', 'w') as wf:
+        with open(f'{CWD}/ip.txt', 'w') as wf:
             if first_run:
                 wf.write(IP)
                 logger.info('First IP recorded')
