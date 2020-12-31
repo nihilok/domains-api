@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 GMAIL_USER = 'mjfullstack@gmail.com'
 GMAIL_PASSWORD = None
 REQ_URL = 'https://vfLzzIJ7fsF70BSO:qCgyuxax90hqx0Yc@domains.google.com/nic/update?hostname=@.mjfullstack.com&myip='
-CWD = ox.getcwd()
+CWD = os.getcwd()
 
 def read_pwd():
     global GMAIL_PASSWORD
