@@ -1,9 +1,7 @@
 #!/usr/bin/python3
 import os
 import sys
-import subprocess
 import logging
-import time
 from datetime import datetime
 import smtplib
 import base64
