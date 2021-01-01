@@ -10,10 +10,12 @@ from requests import get, post
 from email.message import EmailMessage
 
 
+# Global IP variable for email notification (set in IpChanger.__init__()):
 IP = None
 
 
 def get_cwd():
+    '''Returns working directory'''
     if os.name == 'nt':
         return os.path.dirname(os.path.realpath(__file__))
     os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
@@ -46,6 +48,7 @@ class User:
             self.save_user()
 
     def send_notification(self, type='success', error=None):
+        '''Notifies user via email if IP change is made successfully or if API call fails.'''
         msg = EmailMessage()
         if type == 'success':
             msg.set_content(f'IP for {self.domain} has changed! New IP: {IP}')
@@ -85,6 +88,7 @@ class IpChanger:
         logger.info(f'Current IP: {self.current_ip}')
 
     def check_ip(self):
+        '''Checks current external IP against the one saved locally, if such a record exists.'''
         if os.path.isfile(f"{get_cwd()}/ip.txt"):
             with open(f'{get_cwd()}/ip.txt', 'r') as rf:
                 line = rf.readlines()
@@ -104,6 +108,7 @@ class IpChanger:
 
 
     def store_ip(self):
+        '''Stores the first IP locally or changes the stored IP depending on the outcome of self.check_ip()'''
         with open(f'{get_cwd()}/ip.txt', 'w') as wf:
             if self.first_run:
                 logger.info('Recording first IP (no change to DNS)')
@@ -114,6 +119,7 @@ class IpChanger:
                 self.change_ip()
 
     def change_ip(self):
+        '''Attempts to change the Dynamic DNS rules via the Google Domains API'''
         try:
             req = post(f'{self.user.req_url}{self.current_ip}')
             logger.info(f"Google Domains API response: {req.content.decode('utf-8')}")
