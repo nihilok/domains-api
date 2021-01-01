@@ -16,7 +16,7 @@ IP = None
 def get_cwd():
     if os.name == 'nt':
         return os.path.dirname(os.path.realpath(__file__))
-    os.chdir(os.path.dirname(sys.argv[0]))
+    os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
     return os.getcwd()
 
 
