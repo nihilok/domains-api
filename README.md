@@ -2,6 +2,7 @@
 To facilitate running a home web server behind a router, this script checks to see if external IP has changed, alerts user via email, and updates dynamic DNS rules via the domains.google API.
 
 ### Update:
+Now universally accessible. Windows/Mac/Linux it will ask for your details on first run.
 
 
 ### Installation:
