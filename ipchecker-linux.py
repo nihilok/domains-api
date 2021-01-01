@@ -9,9 +9,9 @@ from requests import get, post
 from email.message import EmailMessage
 from password_enc import enc_pwd
 
-GMAIL_USER = 'mjfullstack@gmail.com'
+GMAIL_USER = 'EXAMPLE@gmail.com'
 GMAIL_PASSWORD = None
-REQ_URL = 'https://vfLzzIJ7fsF70BSO:qCgyuxax90hqx0Yc@domains.google.com/nic/update?hostname=@.mjfullstack.com&myip='
+REQ_URL = 'https://<dynamicDNSGeneratedUsername>:<password>@domains.google.com/nic/update?hostname=@.example.com&myip='
 os.chdir(os.path.dirname(sys.argv[0]))
 CWD = os.getcwd()
 print(f'ipChecker ran at {datetime.now().strftime("%H:%M:%S")}')
