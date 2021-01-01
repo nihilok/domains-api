@@ -10,10 +10,6 @@ from requests import get, post
 from email.message import EmailMessage
 
 
-# Global IP variable for email notification (set in IpChanger().__init__()):
-IP = None
-
-
 def get_cwd():
     '''Returns working directory'''
     if os.name == 'nt':
@@ -47,14 +43,14 @@ class User:
             self.req_url = f'https://{self.DNS_username}:{self.DNS_password}@domains.google.com/nic/update?hostname={self.domain}&myip='
             self.save_user()
 
-    def send_notification(self, type='success', error=None):
+    def send_notification(self, ip, type='success', error=None):
         '''Notifies user via email if IP change is made successfully or if API call fails.'''
         msg = EmailMessage()
         if type == 'success':
-            msg.set_content(f'IP for {self.domain} has changed! New IP: {IP}')
+            msg.set_content(f'IP for {self.domain} has changed! New IP: {ip}')
             msg['Subject'] = 'IP CHANGED SUCCESSFULLY!'
         elif type == 'error':
-            msg.set_content(f'IP for {self.domain} has changed but the API call failed ({error})! New IP: {IP}')
+            msg.set_content(f'IP for {self.domain} has changed but the API call failed ({error})! New IP: {ip}')
             msg['Subject'] = 'IP CHANGE FAILED!'
         msg['From'] = self.gmail_address
         msg['To'] = self.gmail_address
@@ -123,10 +119,10 @@ class IpChanger:
         try:
             req = post(f'{self.user.req_url}{self.current_ip}')
             logger.info(f"Google Domains API response: {req.content.decode('utf-8')}")
-            self.user.send_notification()
+            self.user.send_notification(self.current_ip)
         except Exception as e:
             logger.warning(f'API call failed: {e}')
-            self.user.send_notification('error', e)
+            self.user.send_notification(self.current_ip, 'error', e)
 
 
 if __name__ == "__main__":
