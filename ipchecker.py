@@ -102,6 +102,7 @@ class IpChanger:
                     self.store_ip()
         else:
             self.first_run = True
+            self.store_ip()
 
 
     def store_ip(self):
