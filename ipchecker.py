@@ -108,16 +108,16 @@ class IpChanger:
     def store_ip(self):
         with open(f'{get_cwd()}/ip.txt', 'w') as wf:
             if self.first_run:
-                logger.info('recording first IP (no change to DNS)')
+                logger.info('Recording first IP (no change to DNS)')
                 wf.write(self.current_ip)
             elif self.change:
-                logger.info('changing IP address...')
+                logger.info('Changing IP address...')
                 wf.write(self.current_ip)
 
     def change_ip(self):
         try:
             req = post(f'{self.user.req_url}{self.current_ip}')
-            logger.info(f"domains.google api response: {req.content.decode('utf-8')}")
+            logger.info(f"Google Domains API response: {req.content.decode('utf-8')}")
             self.user.send_notification()
         except Exception as e:
             logger.warning(f'API call failed: {e}')
