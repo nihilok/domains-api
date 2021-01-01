@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import base64
+import getopt
 import logging
 import os
 import pickle
@@ -25,13 +26,18 @@ def get_cwd():
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 fh = logging.FileHandler(f'{get_cwd()}/ipchecker.log')
-sh = logging.StreamHandler(sys.stdout)
+
 formatter = logging.Formatter('[%(levelname)s]|%(asctime)s|%(message)s',
                               datefmt='%d %b %Y %H:%M:%S')
 fh.setFormatter(formatter)
+sh = logging.StreamHandler(sys.stdout)
 sh.setFormatter(formatter)
-logger.addHandler(fh)
+if (logger.hasHandlers()):
+    logger.handlers.clear()
 logger.addHandler(sh)
+logger.addHandler(fh)
+
+
 
 
 class User:
@@ -50,6 +56,7 @@ class User:
             self.gmail_address, self.gmail_password = self.set_email()
             self.previous_ip = None
             self.save_user()
+            logging.info('New user created. To change / remove user profile delete "user.pickle"')
 
     def set_credentials(self):
 
@@ -99,8 +106,8 @@ class User:
         with open(f'{get_cwd()}/user.pickle', 'wb') as pickle_file:
             pickle.dump(self, pickle_file)
 
-    def load_user(self):
-        with open('user.pickle', 'rb') as pickle_file:
+    def load_user(self, pickle_file='user.pickle'):
+        with open(pickle_file, 'rb') as pickle_file:
             self.__dict__.update(pickle.load(pickle_file).__dict__)
 
     @staticmethod
@@ -109,23 +116,63 @@ class User:
 
 
 class IpChanger:
-    def __init__(self):
+    def __init__(self, argv):
         """Load User instance, check previous IP address against current external IP, and change if different."""
+
         self.user = User()
+
+        try:
+            opts, args = getopt.getopt(argv, "cdehu:", ["credentials", "delete_user", "email", "help", "user_pickle="])
+        except getopt.GetoptError:
+            print('ipchecker.py -h --help')
+            sys.exit(2)
+
+        for opt, arg in opts:
+            if opt == '-h':
+                print(
+                    """                    
+            ipchecker.py                        || run the script normally without arguments
+            ipchecker.py -c --credentials       || change API credentials
+            ipchecker.py -e --email             || change email notification settings
+            ipchecker.py -d --delete_user       || delete current user profile
+            ipchecker.py -u new_user.pickle     || load user from pickle_file (or `--user_pickle new_user.pickle`)
+                                                   **this will overwrite your current user profile without warning!**
+                    """
+                )
+                sys.exit()
+            elif opt in ("-c", "--credentials"):
+                self.user.set_credentials()
+                self.user.save_user()
+                sys.exit()
+            elif opt in ("-d", "--delete"):
+                self.user.delete_user()
+                print('User deleted')
+                sys.exit()
+            elif opt in ("-e", "--email"):
+                self.user.set_email()
+                sys.exit()
+            elif opt in ("-u", "--user_pickle"):
+                try:
+                    self.user.load_user(pickle_file=arg)
+                    self.user.save_user()
+                    print('User changed')
+                except Exception as e:
+                    print(e)
+                    sys.exit(2)
+                sys.exit()
         try:
             self.current_ip = get('https://api.ipify.org').text
             if self.user.previous_ip == self.current_ip:
                 logger.info(f'Current IP: {self.user.previous_ip} (no change)')
-                return
             else:
                 self.user.previous_ip = self.current_ip
                 self.domains_api_call()
                 logger.info(f'New IP Recorded: {self.user.previous_ip}')
                 self.user.save_user()
-                return
         except Exception as e:
             logger.warning(f'Error: {e}')
-            return
+        finally:
+            sys.exit()
 
     def domains_api_call(self):
 
@@ -163,4 +210,4 @@ class IpChanger:
 
 
 if __name__ == "__main__":
-    IpChanger()
+    IpChanger(sys.argv[1:])
