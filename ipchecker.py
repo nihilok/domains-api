@@ -82,8 +82,6 @@ class IpChanger:
         self.first_run = False
         self.change = False
         self.check_ip()
-        if self.change:
-            self.change_ip()
         logger.info(f'Current IP: {self.current_ip}')
 
     def check_ip(self):
@@ -113,6 +111,7 @@ class IpChanger:
             elif self.change:
                 logger.info('Changing IP address...')
                 wf.write(self.current_ip)
+                self.change_ip()
 
     def change_ip(self):
         try:
