@@ -120,7 +120,7 @@ class IpChanger:
             else:
                 self.user.previous_ip = self.current_ip
                 self.domains_api_call()
-                logger.info(f'Current IP: {self.user.previous_ip}')
+                logger.info(f'New IP Recorded: {self.user.previous_ip}')
                 self.user.save_user()
                 return
         except Exception as e:
