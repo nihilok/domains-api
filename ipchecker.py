@@ -74,9 +74,7 @@ class User:
 
 class IpChanger:
     def __init__(self):
-        global IP
         self.current_ip = get('https://api.ipify.org').text
-        IP = self.current_ip
         self.user = User()
         self.first_run = False
         self.change = False
