@@ -10,7 +10,7 @@ from requests import get, post
 from email.message import EmailMessage
 
 
-# Global IP variable for email notification (set in IpChanger.__init__()):
+# Global IP variable for email notification (set in IpChanger().__init__()):
 IP = None
 
 
