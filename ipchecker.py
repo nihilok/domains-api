@@ -33,7 +33,7 @@ logger.addHandler(sh)
 
 
 class User:
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         if os.path.isfile(f"{get_cwd()}/user.pickle"):
             self.load_user()
         else:
