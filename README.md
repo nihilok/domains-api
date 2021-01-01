@@ -14,7 +14,7 @@ Simply run the script with Python 3.6+ and allow less secure apps on your Google
 
 The script takes care of everything, if your IP has changed since you last ran it, it will update your Dynamic DNS rule on domains.google.com.
 
-On **Windows** you can use Task Scheduler; on **Linux/Mac**, simply add `ipchecker.py` to your crontab (mark as executable with `chmod +x ipchecker.py`) and you can choose the frequency of the checks. my crontab entry looks like this:
+On **Windows** you can use Task Scheduler; on **Linux/Mac**, simply add `ipchecker.py` to your crontab (mark as executable with `chmod +x ipchecker.py`) and you can choose the frequency of the checks. My crontab entry looks like this:
 
 `0 * * * * /home/me/ipChecker/ipchecker.py >> ~/cron.log 2>&1`
 
