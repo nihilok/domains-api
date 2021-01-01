@@ -11,10 +11,10 @@ logging.basicConfig(filename='ipchecker.log', level=logging.INFO,
                     format='%(asctime)s|%(levelname)s|%(message)s')
 logger = logging.getLogger(__name__)
 
-GMAIL_USER = 'mjfullstack@gmail.com'
+GMAIL_USER = 'EXAMPLE@gmail.com'
 GMAIL_PASSWORD = None
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
-REQ_URL = 'https://vfLzzIJ7fsF70BSO:qCgyuxax90hqx0Yc@domains.google.com/nic/update?hostname=@.mjfullstack.com&myip='
+REQ_URL = 'https://<dynamicDNSGeneratedUsername>:<password>@domains.google.com/nic/update?hostname=@.example.com&myip='
 
 import getpass
 USER_NAME = getpass.getuser()
