@@ -84,8 +84,7 @@ class IpChanger:
         self.check_ip()
         if self.change:
             self.change_ip()
-        else:
-            logger.info(f'Current IP: {self.current_ip}')
+        logger.info(f'Current IP: {self.current_ip}')
 
     def check_ip(self):
         if os.path.isfile(f"{get_cwd()}/ip.txt"):
