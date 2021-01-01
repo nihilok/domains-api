@@ -100,6 +100,7 @@ class IpChanger:
                 else:
                     self.first_run = False
                     self.change = True
+                    self.store_ip()
         else:
             self.first_run = True
 
