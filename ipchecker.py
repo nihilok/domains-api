@@ -81,8 +81,8 @@ class IpChanger:
         self.user = User()
         self.first_run = False
         self.change = False
-        self.old_ip = self.check_ip()
-        if self.old_ip != self.current_ip:
+        self.check_ip()
+        if self.change:
             self.change_ip()
         else:
             logger.info(f'Current IP: {self.current_ip}')
@@ -93,18 +93,16 @@ class IpChanger:
                 line = rf.readlines()
                 if not line:
                     self.first_run = True
-                    return self.store_ip()
+                    self.store_ip()
                 elif line[0] == self.current_ip:
                     self.first_run = False
                     self.change = False
-                    return self.current_ip
                 else:
                     self.first_run = False
                     self.change = True
-                    return self.store_ip()
         else:
             self.first_run = True
-            return self.store_ip()
+
 
     def store_ip(self):
         with open(f'{get_cwd()}/ip.txt', 'w') as wf:
@@ -114,8 +112,6 @@ class IpChanger:
             elif self.change:
                 logger.info('changing IP address...')
                 wf.write(self.current_ip)
-                self.change_ip()
-        return self.current_ip
 
     def change_ip(self):
         try:
