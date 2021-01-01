@@ -31,6 +31,7 @@ sh.setFormatter(formatter)
 logger.addHandler(fh)
 logger.addHandler(sh)
 
+
 class User:
     def __init__(self, *args, **kwargs):
         if os.path.isfile(f"{get_cwd()}/user.pickle"):
