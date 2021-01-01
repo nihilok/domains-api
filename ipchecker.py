@@ -32,12 +32,10 @@ formatter = logging.Formatter('[%(levelname)s]|%(asctime)s|%(message)s',
 fh.setFormatter(formatter)
 sh = logging.StreamHandler(sys.stdout)
 sh.setFormatter(formatter)
-if (logger.hasHandlers()):
+if logger.hasHandlers():
     logger.handlers.clear()
 logger.addHandler(sh)
 logger.addHandler(fh)
-
-
 
 
 class User:
