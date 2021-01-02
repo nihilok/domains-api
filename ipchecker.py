@@ -46,7 +46,7 @@ class User:
         """Create user instance and save it for future changes to API and for email notifications,
         or load previous user profile"""
 
-        if os.path.isfile(".user.pickle"):
+        if os.path.isfile('%s.user' % FILE_PATH):
             self.__dict__.update(self.load_user().__dict__)
         else:
             self.notifications = 'Y'
@@ -104,17 +104,17 @@ class User:
                 logger.warning(log_msg)
 
     def save_user(self):
-        with open('%s/.user.pickle' % FILE_PATH, 'wb') as pickle_file:
+        with open('%s/.user' % FILE_PATH, 'wb') as pickle_file:
             pickle.dump(self, pickle_file)
 
     @staticmethod
-    def load_user(pickle_file='%s/.user.pickle' % FILE_PATH):
+    def load_user(pickle_file='%s/.user' % FILE_PATH):
         with open(pickle_file, 'rb') as pickle_file:
             return pickle.load(pickle_file)
 
     @staticmethod
     def delete_user():
-        os.remove('%s/.user.pickle' % FILE_PATH)
+        os.remove('%s/.user' % FILE_PATH)
 
 
 class IPChanger:
@@ -150,7 +150,7 @@ class IPChanger:
         ipchecker.py -d --delete_user       || delete current user profile
         ipchecker.py -u path/to/user.pickle || (or `--user_load path/to/user.pickle`) load user from file*
                                                *this will overwrite any current user profile without warning!
-                                               Backup "/.user.pickle" to store multiple profiles.
+                                               Backup "/.user" to store multiple profiles.
                             """
                         )
 

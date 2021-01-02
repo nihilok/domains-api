@@ -26,4 +26,4 @@ Logs to `ipchecker.log` in the same directory and stdout so that the logs also a
 
 If you forget your IP or need to check it for any reason, running `ipchecker.py` without options will log your current IP to the terminal. 
 
-As well as the command line options, to change your user details or delete them, you can also just delete the `/.user.pickle` file.
+As well as the command line options, to change your user details or delete them, you can also just delete the `/.user` file.
