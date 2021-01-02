@@ -160,7 +160,7 @@ class IPChanger:
                         self.user = User()
                         self.user.delete_user()
                         logger.info('***User deleted***')
-                        print('>>>Run the script without arguments to create a new user.')
+                        print('''>>>Run the script without arguments to create a new user, or with `--u path/to/pickle`''')
 
                     elif opt in ("-e", "--email"):
                         self.user = User()
@@ -172,7 +172,7 @@ class IPChanger:
                         try:
                             self.user = User.load_user(pickle_file=arg)
                             self.user.save_user()
-                            logger.info('***User changed***')
+                            logger.info('***User loaded***')
                         except Exception as e:
                             logger.warning(e)
                             sys.exit(2)
