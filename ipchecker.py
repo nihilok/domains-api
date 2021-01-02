@@ -100,7 +100,7 @@ class User:
                 server.login(self.gmail_address, base64.b64decode(self.gmail_password).decode('utf-8'))
                 server.send_message(msg)
                 server.close()
-            except MessageError or ConnectionError as e:
+            except (MessageError, ConnectionError) as e:
                 log_msg = 'Email notification not sent: %s' % e
                 logger.warning(log_msg)
 
