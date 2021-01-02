@@ -17,12 +17,17 @@ After initial setup, the script takes care of everything: if your IP has changed
 
 
 
-On **Windows** you can use Task Scheduler; on **Linux/Mac**, simply add `ipchecker.py` to your crontab (mark as executable with `chmod +x ipchecker.py`) and you can choose the frequency of the checks. My crontab entry looks like this:
+On **Windows** you can use Task Scheduler; on **Linux/Mac**, simply add `ipchecker.py` to your crontab (mark as executable with `chmod +x ipchecker.py`) and you can choose the frequency of the checks. My hourly cron job looks like this:
 
 `0 * * * * /home/me/ipChecker/ipchecker.py >> ~/cron.log 2>&1`
 
+if reducing downtime is essential you could increase the frequency of checks to every 5 minutes, for example, like this:
 
-Logs to `ipchecker.log` in the same directory and stdout so that the logs also appear in the cron log. Check the logs if the script does not run as expected, or to see when the IP was last checked.
+`*/5 * * * * ...etc`
+
+On Google Domains the default TTL for Dynamic DNS is 1 min, but unless you expect your external IP to change very frequently, more regular checks might be a slight waste of resources.
+
+The script logs to both `ipchecker.log` in the script's own directory and stdout so that the logs also appear in the cron log / terminal. Check `~/cron.log` if the script does not run as expected, or to see when the IP was last checked.
 
 If you forget your IP or need to check it for any reason, running `ipchecker.py` without options will log your current IP to the terminal. 
 
