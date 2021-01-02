@@ -123,7 +123,7 @@ class IPChanger:
 
         opts = []
         try:
-            opts, _args = getopt.getopt(argv, "cdehu:", ["credentials", "delete_user", "email", "help", "user_pickle="])
+            opts, _args = getopt.getopt(argv, "cdehu:", ["credentials", "delete_user", "email", "help", "user_load="])
             self.current_ip = get('https://api.ipify.org').text
 
         except getopt.GetoptError:
@@ -145,8 +145,9 @@ class IPChanger:
         ipchecker.py -c --credentials       || change API credentials
         ipchecker.py -e --email             || change email notification settings
         ipchecker.py -d --delete_user       || delete current user profile
-        ipchecker.py -u new_user.pickle     || (or `--user_pickle new_user.pickle`) load user from pickle_file*
-                                               *this will overwrite your current user profile without warning!
+        ipchecker.py -u path/to/user.pickle || (or `--user_load path/to/user.pickle`) load user from file*
+                                               *this will overwrite any current user profile without warning!
+                                               Backup "/.user.pickle" to store multiple profiles.
                             """
                         )
 
@@ -168,7 +169,7 @@ class IPChanger:
                         self.user.save_user()
                         logger.info('***Notification settings changed***')
 
-                    elif opt in ("-u", "--user_pickle"):
+                    elif opt in ("-u", "--user_load"):
                         try:
                             self.user = User.load_user(pickle_file=arg)
                             self.user.save_user()
