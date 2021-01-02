@@ -38,6 +38,7 @@ logger.addHandler(fh)
 class User:
     BASE_URL = '@domains.google.com/nic/update?hostname='
 
+
     def __init__(self):
 
         """Create user instance and save it for future changes to API and for email notifications,
@@ -46,8 +47,8 @@ class User:
         if os.path.isfile(f".user.pickle"):
             self.load_user()
         else:
+            self.notifications = 'Y'
             self.domain, self.DNS_username, self.DNS_password, self.req_url = self.set_credentials()
-            self.notifications = input("Enable email notifications? Y/all(default); 1/errors only; n/no: ").lower()
             self.gmail_address, self.gmail_password = self.set_email()
             self.save_user()
             logging.info('New user created. (See `python3 ipchecker.py --help` for help changing/removing the user)')
@@ -66,6 +67,7 @@ class User:
 
         """Take/return inputs for Gmail credentials if notifications enabled"""
 
+        self.notifications = input("Enable email notifications? Y/all(default); 1/errors only; n/no: ").lower()
         if self.notifications != 'n':
             self.gmail_address = input("What's your email address?: ")
             self.gmail_password = base64.b64encode(getpass("What's your email password?: ").encode("utf-8"))
@@ -147,6 +149,7 @@ class IpChanger:
                         self.user.set_credentials()
                         self.domains_api_call()
                         self.user.save_user()
+                        logger.info('***API credentials changed***')
 
                     elif opt in ("-d", "--delete"):
                         self.user.delete_user()
@@ -156,12 +159,12 @@ class IpChanger:
                     elif opt in ("-e", "--email"):
                         self.user.set_email()
                         self.user.save_user()
-
+                        logger.info('***Notification settings changed***')
                     elif opt in ("-u", "--user_pickle"):
                         try:
                             self.user.load_user(pickle_file=arg)
                             self.user.save_user()
-                            logger.info('User changed')
+                            logger.info('***User changed***')
                         except Exception as e:
                             logger.warning(e)
                             sys.exit(2)
@@ -173,7 +176,7 @@ class IpChanger:
                 else:
                     self.user.previous_ip = self.current_ip
                     self.domains_api_call()
-                    logger.info(f'New IP Recorded: {self.user.previous_ip}')
+                    logger.info(f'Newly recorded IP: {self.user.previous_ip}')
                     self.user.save_user()
             except AttributeError:
                 setattr(self.user, 'previous_ip', self.current_ip)
