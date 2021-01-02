@@ -13,7 +13,7 @@ keep.login(user.gmail_address, user_pwd)
 
 
 def change_previous_ip():
-    user.previous_ip = '121212'
+    user.previous_ip = '42'
 
     with open('.user.pickle', 'wb') as pickle_file:
         pickle.dump(user, pickle_file)
