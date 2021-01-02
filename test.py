@@ -1,4 +1,4 @@
-from ipchecker import User
+from ipchecker import User, IPChanger
 import pickle
 import gkeepapi
 import base64
