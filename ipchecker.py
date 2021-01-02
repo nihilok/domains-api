@@ -69,7 +69,7 @@ class User:
 
         """Take/return inputs for Gmail credentials if notifications enabled"""
 
-        self.notifications = input("Enable email notifications? [Y]all(default); [1]errors only; [n]no: ").lower()
+        self.notifications = input("Enable email notifications? [Y]all(default); [e]errors only; [n]no: ").lower()
         if self.notifications != 'n':
             self.gmail_address = input("What's your email address?: ")
             self.gmail_password = base64.b64encode(getpass("What's your email password?: ").encode("utf-8"))
@@ -83,7 +83,7 @@ class User:
 
         if self.notifications != 'n':
             msg = EmailMessage()
-            if msg_type == 'success' and self.notifications != 'n' and self.notifications != '1':
+            if msg_type == 'success' and self.notifications != 'n' and self.notifications != 'e':
                 msg.set_content(f'IP for {self.domain} has changed! New IP: {ip}')
                 msg['Subject'] = 'IP CHANGED SUCCESSFULLY!'
             elif msg_type == 'error' and self.notifications != 'n':
