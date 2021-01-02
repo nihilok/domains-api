@@ -1,5 +1,5 @@
 # ipChecker
-To facilitate running a home web server behind a router, this script checks to see if external IP has changed, alerts user via email, and updates dynamic DNS rules via the domains.google API.
+To facilitate running a home web server behind a router, this script checks to see if external IP has changed and updates dynamic DNS rules via domains.google API.
 
 ### Update:
 Now universally compatible/accessible. Windows/Mac/Linux it will ask for your credentials on first run. I also added command line options/arguments (see `./ipchecker.py --help`) for loading/deleting a user and changing credentials/settings.
