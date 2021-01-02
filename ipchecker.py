@@ -6,6 +6,7 @@ import os
 import pickle
 import smtplib
 import sys
+from email.errors import MessageError
 from email.message import EmailMessage
 from getpass import getpass
 
@@ -99,7 +100,7 @@ class User:
                 server.login(self.gmail_address, base64.b64decode(self.gmail_password).decode('utf-8'))
                 server.send_message(msg)
                 server.close()
-            except Exception as e:
+            except MessageError or ConnectionError as e:
                 log_msg = 'Email notification not sent: %s' % e
                 logger.warning(log_msg)
 
