@@ -160,7 +160,7 @@ class IPChanger:
                         self.user = User()
                         self.user.delete_user()
                         logger.info('***User deleted***')
-                        print('''>>>Run the script without arguments to create a new user, or with `-u path/to/pickle` to load one from pickle file''')
+                        print('''>>>Run the script without options to create a new user, or with `-u path/to/pickle` to load one from pickle file''')
 
                     elif opt in ("-e", "--email"):
                         self.user = User()
