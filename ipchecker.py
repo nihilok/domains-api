@@ -25,10 +25,12 @@ def get_cwd():
 
 
 FILE_PATH = get_cwd()
+USER_PICKLE = '%s/.user.p' % FILE_PATH
+LOG_FILE = '%s/ipchecker.log' % FILE_PATH
 
 logger = logging.getLogger('')
 logger.setLevel(logging.INFO)
-fh = logging.FileHandler('%s/ipchecker.log' % FILE_PATH)
+fh = logging.FileHandler(LOG_FILE)
 sh = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter('[%(levelname)s]|%(asctime)s|%(message)s',
                               datefmt='%d %b %Y %H:%M:%S')
@@ -47,7 +49,7 @@ class User:
         """Create user instance and save it for future changes to API and for email notifications,
         or load previous user profile"""
 
-        if os.path.isfile('%s.user' % FILE_PATH):
+        if os.path.isfile(USER_PICKLE):
             self.__dict__.update(self.load_user().__dict__)
         else:
             self.notifications = 'Y'
@@ -105,17 +107,17 @@ class User:
                 logger.warning(log_msg)
 
     def save_user(self):
-        with open('%s/.user' % FILE_PATH, 'wb') as pickle_file:
+        with open(USER_PICKLE, 'wb') as pickle_file:
             pickle.dump(self, pickle_file)
 
     @staticmethod
-    def load_user(pickle_file='%s/.user' % FILE_PATH):
+    def load_user(pickle_file=USER_PICKLE):
         with open(pickle_file, 'rb') as pickle_file:
             return pickle.load(pickle_file)
 
     @staticmethod
     def delete_user():
-        os.remove('%s/.user' % FILE_PATH)
+        os.remove(USER_PICKLE)
 
 
 class IPChanger:
