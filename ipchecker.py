@@ -155,7 +155,7 @@ class IPChanger:
 
         ipChecker.py help manual (command line options):
         ``````````````````````````````````````````````````````````````````````````````````````````````````````````
-                                               
+
         ipchecker.py                        || -run the script normally without arguments
         ipchecker.py -h --help              || -show this help manual
         ipchecker.py -c --credentials       || -change API credentials
