@@ -23,9 +23,11 @@ def get_cwd():
     return os.getcwd()
 
 
+FILE_PATH = get_cwd()
+
 logger = logging.getLogger('')
 logger.setLevel(logging.INFO)
-fh = logging.FileHandler(f'{get_cwd()}/ipchecker.log')
+fh = logging.FileHandler('%s/ipchecker.log' % FILE_PATH)
 sh = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter('[%(levelname)s]|%(asctime)s|%(message)s',
                               datefmt='%d %b %Y %H:%M:%S')
@@ -98,20 +100,20 @@ class User:
                 server.send_message(msg)
                 server.close()
             except Exception as e:
-                logger.warning(f'Email notification not sent:{e}')
+                logger.warning('Email notification not sent: %s' % e)
 
     def save_user(self):
-        with open('.user.pickle', 'wb') as pickle_file:
+        with open('%s/.user.pickle' % FILE_PATH, 'wb') as pickle_file:
             pickle.dump(self, pickle_file)
 
     @staticmethod
-    def load_user(pickle_file='.user.pickle'):
+    def load_user(pickle_file='%s/.user.pickle' % FILE_PATH):
         with open(pickle_file, 'rb') as pickle_file:
             return pickle.load(pickle_file)
 
     @staticmethod
     def delete_user():
-        os.remove(f'{get_cwd()}/.user.pickle')
+        os.remove('%s/.user.pickle' % FILE_PATH)
 
 
 class IPChanger:
@@ -181,11 +183,11 @@ class IPChanger:
             try:
                 self.user = User()
                 if self.user.previous_ip == self.current_ip:
-                    logger.info(f'Current IP: {self.user.previous_ip} (no change)')
+                    logger.info('Current IP: %s (no change)' % self.user.previous_ip)
                 else:
                     self.user.previous_ip = self.current_ip
                     self.domains_api_call()
-                    logger.info(f'Newly recorded IP: {self.user.previous_ip}')
+                    logger.info('Newly recorded IP: %s' % self.user.previous_ip)
                     self.user.save_user()
 
             except AttributeError:
@@ -203,7 +205,7 @@ class IPChanger:
         try:
             req = post(f'{self.user.req_url}{self.current_ip}')
             response = req.content.decode('utf-8')
-            logger.info(f"Google Domains API response: {response}")
+            logger.info('Google Domains API response: %s' % response)
 
             # Successful request:
             if response[:4] == 'good' or response[:5] == 'nochg':
@@ -232,7 +234,7 @@ class IPChanger:
                     sys.exit(2)
 
         except Exception as e:  # Non-API related errors
-            logger.warning(f'API call failed: {e}')
+            logger.warning('API call failed: %s' % e)
             self.user.send_notification(self.current_ip, 'error', e)
 
 
