@@ -158,8 +158,7 @@ class IPChanger:
                         logger.info('***API credentials changed***')
 
                     elif opt in ("-d", "--delete"):
-                        self.user = User()
-                        self.user.delete_user()
+                        User.delete_user()
                         logger.info('***User deleted***')
                         print('''>>>Run the script without options to create a new user, or with `-u path/to/pickle` to load one from pickle file''')
 
