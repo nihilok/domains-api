@@ -16,6 +16,7 @@ from requests.exceptions import ConnectionError as ReqConError
 
 
 def get_cwd():
+
     """Change &/ return working directory depending on OS: for absolute file paths
     Cron jobs will have '/' as their working dir by default."""
 
@@ -136,17 +137,13 @@ class IPChanger:
                                                           'notifications',
                                                           'user_load='])
             self.current_ip = get('https://api.ipify.org').text
-
         except getopt.GetoptError:
             print('ipchecker.py -h --help')
             sys.exit(2)
-
         except ReqConError:
             logger.warning('Connection Error')
             sys.exit(1)
-
         finally:
-
             if opts:
                 for opt, arg in opts:
                     if opt in ('-h', '--help'):
@@ -165,27 +162,23 @@ class IPChanger:
         ipchecker.py -u path/to/user.pickle || -(or `--user_load path/to/user.pickle`) load user from file**
                                             || **this will overwrite any current user profile without warning!
                                             || **Backup "/.user" file to store multiple profiles.
-                            """
+"""
                         )
-
                     elif opt in ('-c', '--credentials'):
                         self.user = User()
                         self.user.set_credentials(update=True)
                         self.domains_api_call()
                         logger.info('***API credentials changed***')
-
                     elif opt in ('-d', '--delete'):
                         User.delete_user()
                         logger.info('***User deleted***')
                         print('>>>Run the script without options to create a new user, or '
                               '`ipchecker.py -u path/to/pickle` to load one from file')
-
                     elif opt in ('-e', '--email'):
                         self.user = User()
                         self.user.set_email()
                         self.user.save_user()
                         logger.info('***Notification settings changed***')
-
                     elif opt in ('-n', '--notifications'):
                         n_options = {'Y': '[all changes]', 'e': '[errors only]', 'n': '[none]'}
                         self.user = User()
@@ -200,7 +193,6 @@ class IPChanger:
                         if self.user.notifications in ('Y', 'e') and not self.user.gmail_address:
                             logger.info('No email user set, running email set up wizard...')
                             self.user.set_email()
-
                     elif opt in ('-u', '--user_load'):
                         try:
                             self.user = User.load_user(pickle_file=arg)
@@ -210,7 +202,6 @@ class IPChanger:
                             logger.warning(e)
                             sys.exit(2)
                     sys.exit()
-
             try:
                 self.user = User()
                 if self.user.previous_ip == self.current_ip:
@@ -222,12 +213,10 @@ class IPChanger:
                     log_msg = 'Newly recorded IP: %s' % self.user.previous_ip
                     logger.info(log_msg)
                     self.user.save_user()
-
             except AttributeError:
                 setattr(self.user, 'previous_ip', self.current_ip)
                 self.user.save_user()
                 self.domains_api_call()
-
             finally:
                 sys.exit()
 
@@ -266,7 +255,6 @@ class IPChanger:
                     self.user.delete_user()
                     logger.warning('API authentication failed, user profile deleted')
                     sys.exit(2)
-
         except ReqConError as e:  # Local connection related errors
             log_msg = 'Connection Error: %s' % e
             logger.warning(log_msg)
