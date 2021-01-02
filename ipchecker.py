@@ -179,6 +179,7 @@ class IPChanger:
                     sys.exit()
 
             try:
+                self.user = User()
                 if self.user.previous_ip == self.current_ip:
                     logger.info(f'Current IP: {self.user.previous_ip} (no change)')
                 else:
