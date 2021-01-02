@@ -42,7 +42,6 @@ logger.addHandler(fh)
 
 
 class User:
-
     BASE_URL = '@domains.google.com/nic/update?hostname='
 
     def __init__(self):
