@@ -127,6 +127,7 @@ class IpChanger:
         except ConnectionError as e:
             logger.warning('Connection Error')
             sys.exit(1)
+
         finally:
             if opts:
                 for opt, arg in opts:
@@ -141,25 +142,31 @@ class IpChanger:
                                                            **this will overwrite your current user profile without warning!**
                             """
                         )
+
                     elif opt in ("-c", "--credentials"):
                         self.user.set_credentials()
                         self.domains_api_call()
                         self.user.save_user()
+
                     elif opt in ("-d", "--delete"):
                         self.user.delete_user()
                         logger.info('***User deleted***')
-                        print('Run the script without arguments to create a new user.')
+                        print('>>>Run the script without arguments to create a new user.')
+
                     elif opt in ("-e", "--email"):
                         self.user.set_email()
+                        self.user.save_user()
+
                     elif opt in ("-u", "--user_pickle"):
                         try:
                             self.user.load_user(pickle_file=arg)
                             self.user.save_user()
-                            print('User changed')
+                            logger.info('User changed')
                         except Exception as e:
-                            print(e)
+                            logger.warning(e)
                             sys.exit(2)
                     sys.exit()
+
             try:
                 if self.user.previous_ip == self.current_ip:
                     logger.info(f'Current IP: {self.user.previous_ip} (no change)')
@@ -177,7 +184,7 @@ class IpChanger:
 
     def domains_api_call(self):
 
-        """Attempt to change the Dynamic DNS rules via the Google Domains API"""
+        """Attempt to change the Dynamic DNS rules via the Google Domains API and handle response codes"""
 
         try:
             req = post(f'{self.user.req_url}{self.current_ip}')
