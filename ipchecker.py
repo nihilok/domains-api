@@ -100,7 +100,8 @@ class User:
                 server.send_message(msg)
                 server.close()
             except Exception as e:
-                logger.warning('Email notification not sent: %s' % e)
+                log_msg = 'Email notification not sent: %s' % e
+                logger.warning(log_msg)
 
     def save_user(self):
         with open('%s/.user.pickle' % FILE_PATH, 'wb') as pickle_file:
@@ -183,11 +184,13 @@ class IPChanger:
             try:
                 self.user = User()
                 if self.user.previous_ip == self.current_ip:
-                    logger.info('Current IP: %s (no change)' % self.user.previous_ip)
+                    log_msg = 'Current IP: %s (no change)' % self.user.previous_ip
+                    logger.info(log_msg)
                 else:
                     self.user.previous_ip = self.current_ip
                     self.domains_api_call()
-                    logger.info('Newly recorded IP: %s' % self.user.previous_ip)
+                    log_msg = 'Newly recorded IP: %s' % self.user.previous_ip
+                    logger.info(log_msg)
                     self.user.save_user()
 
             except AttributeError:
@@ -205,7 +208,8 @@ class IPChanger:
         try:
             req = post(f'{self.user.req_url}{self.current_ip}')
             response = req.content.decode('utf-8')
-            logger.info('Google Domains API response: %s' % response)
+            log_msg = 'Google Domains API response: %s' % response
+            logger.info(log_msg)
 
             # Successful request:
             if response[:4] == 'good' or response[:5] == 'nochg':
@@ -234,7 +238,8 @@ class IPChanger:
                     sys.exit(2)
 
         except Exception as e:  # Non-API related errors
-            logger.warning('API call failed: %s' % e)
+            log_msg = 'API call failed: %s' % e
+            logger.warning(log_msg)
             self.user.send_notification(self.current_ip, 'error', e)
 
 
