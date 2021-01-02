@@ -9,6 +9,7 @@ import sys
 from email.errors import MessageError
 from email.message import EmailMessage
 from getpass import getpass
+from itertools import cycle
 
 from requests import get, post
 from requests.exceptions import ConnectionError as ReqConError
@@ -88,7 +89,7 @@ class User:
 
         if self.notifications != 'n':
             msg = EmailMessage()
-            if msg_type == 'success' and (self.notifications != 'n' or self.notifications != 'e'):
+            if msg_type == 'success' and self.notifications not in ('n', 'e'):
                 msg.set_content(f'IP for {self.domain} has changed! New IP: {ip}')
                 msg['Subject'] = 'IP CHANGED SUCCESSFULLY!'
             elif msg_type == 'error' and self.notifications != 'n':
@@ -129,7 +130,12 @@ class IPChanger:
 
         opts = []
         try:
-            opts, _args = getopt.getopt(argv, "cdehu:", ["credentials", "delete_user", "email", "help", "user_load="])
+            opts, _args = getopt.getopt(argv, 'cdehnu:', ['credentials',
+                                                          'delete_user',
+                                                          'email',
+                                                          'help',
+                                                          'notifications',
+                                                          'user_load='])
             self.current_ip = get('https://api.ipify.org').text
 
         except getopt.GetoptError:
@@ -144,38 +150,59 @@ class IPChanger:
 
             if opts:
                 for opt, arg in opts:
-                    if opt == '-h':
+                    if opt in ('-h', '--help'):
                         print(
-                            """                    
-        ipchecker.py                        || run the script normally without arguments
-        ipchecker.py -c --credentials       || change API credentials
-        ipchecker.py -e --email             || change email notification settings
-        ipchecker.py -d --delete_user       || delete current user profile
-        ipchecker.py -u path/to/user.pickle || (or `--user_load path/to/user.pickle`) load user from file*
-                                               *this will overwrite any current user profile without warning!
-                                               Backup "/.user" to store multiple profiles.
+                            """
+
+        ipChecker.py help manual (command line options):
+        ``````````````````````````````````````````````````````````````````````````````````````````````````````````
+                                               
+        ipchecker.py                        || -run the script normally without arguments
+        ipchecker.py -h --help              || -show this help manual
+        ipchecker.py -c --credentials       || -change API credentials
+        ipchecker.py -e --email             || -email set up wizard > use to delete email credentials (choose 'n')
+        ipchecker.py -n --notifications     || -toggle email notification settings > will not delete email address
+        ipchecker.py -d --delete_user       || -delete current user profile
+        ipchecker.py -u path/to/user.pickle || -(or `--user_load path/to/user.pickle`) load user from file**
+                                            || **this will overwrite any current user profile without warning!
+                                            || **Backup "/.user" file to store multiple profiles.
                             """
                         )
 
-                    elif opt in ("-c", "--credentials"):
+                    elif opt in ('-c', '--credentials'):
                         self.user = User()
                         self.user.set_credentials(update=True)
                         self.domains_api_call()
                         logger.info('***API credentials changed***')
 
-                    elif opt in ("-d", "--delete"):
+                    elif opt in ('-d', '--delete'):
                         User.delete_user()
                         logger.info('***User deleted***')
                         print('>>>Run the script without options to create a new user, or '
                               '`ipchecker.py -u path/to/pickle` to load one from file')
 
-                    elif opt in ("-e", "--email"):
+                    elif opt in ('-e', '--email'):
                         self.user = User()
                         self.user.set_email()
                         self.user.save_user()
                         logger.info('***Notification settings changed***')
 
-                    elif opt in ("-u", "--user_load"):
+                    elif opt in ('-n', '--notifications'):
+                        n_options = {'Y': '[all changes]', 'e': '[errors only]', 'n': '[none]'}
+                        self.user = User()
+                        options_iter = cycle(n_options.keys())
+                        for option in options_iter:
+                            if self.user.notifications == option:
+                                break
+                        self.user.notifications = next(options_iter)
+                        self.user.save_user()
+                        log_msg = '***Notification settings changed to %s***' % n_options[self.user.notifications]
+                        logger.info(log_msg)
+                        if self.user.notifications in ('Y', 'e') and not self.user.gmail_address:
+                            logger.info('No email user set, running email set up wizard...')
+                            self.user.set_email()
+
+                    elif opt in ('-u', '--user_load'):
                         try:
                             self.user = User.load_user(pickle_file=arg)
                             self.user.save_user()
