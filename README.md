@@ -8,7 +8,7 @@ Now universally compatible/accessible. Windows/Mac/Linux it will ask for your cr
 
 Install requirements (assumes installation of Python 3 and pip):
 
-`pip install -r requirements.txt`
+`pip install requests`
 
 Run the script with `python ipchecker.py` (or on unix-based systems, you can mark `ipchecker.py` as executable with 
 
@@ -30,7 +30,7 @@ if reducing downtime is essential, you could increase the frequency of checks to
 
 On Google Domains the default TTL for Dynamic DNS is 1 min, but unless you expect your external IP to change very frequently, more regular checks might be a slight waste of resources; even so, the script is very light weight.
 
-The logs are written to both `ipchecker.log` in the script's own directory, and stdout, so that the logs also appear in the cron log & terminal. Check `~/cron.log` if the script does not run as expected, or to see when the IP was last checked.
+The logs are written to both `ipchecker.log` in the script's own directory, and stdout, so that they also appear in the cron log & terminal. Check `~/cron.log` if the script does not run as expected, or to see when the IP was last checked.
 
 If you forget your IP or need to check it for any reason, running `ipchecker.py` without options will log your current IP to the terminal. 
 
