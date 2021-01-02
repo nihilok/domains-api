@@ -85,7 +85,7 @@ class User:
 
         if self.notifications != 'n':
             msg = EmailMessage()
-            if msg_type == 'success' and self.notifications != 'n' and self.notifications != 'e':
+            if msg_type == 'success' and (self.notifications != 'n' or self.notifications != 'e'):
                 msg.set_content(f'IP for {self.domain} has changed! New IP: {ip}')
                 msg['Subject'] = 'IP CHANGED SUCCESSFULLY!'
             elif msg_type == 'error' and self.notifications != 'n':
@@ -163,7 +163,8 @@ class IPChanger:
                     elif opt in ("-d", "--delete"):
                         User.delete_user()
                         logger.info('***User deleted***')
-                        print('''>>>Run the script without options to create a new user, or with `-u path/to/pickle` to load one from pickle file''')
+                        print('>>>Run the script without options to create a new user, or '
+                              '`ipchecker.py -u path/to/pickle` to load one from file')
 
                     elif opt in ("-e", "--email"):
                         self.user = User()
@@ -176,7 +177,7 @@ class IPChanger:
                             self.user = User.load_user(pickle_file=arg)
                             self.user.save_user()
                             logger.info('***User loaded***')
-                        except Exception as e:
+                        except FileNotFoundError as e:
                             logger.warning(e)
                             sys.exit(2)
                     sys.exit()
@@ -237,8 +238,8 @@ class IPChanger:
                     logger.warning('API authentication failed, user profile deleted')
                     sys.exit(2)
 
-        except Exception as e:  # Non-API related errors
-            log_msg = 'API call failed: %s' % e
+        except ReqConError as e:  # Local connection related errors
+            log_msg = 'Connection Error: %s' % e
             logger.warning(log_msg)
             self.user.send_notification(self.current_ip, 'error', e)
 
