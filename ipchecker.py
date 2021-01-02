@@ -117,9 +117,8 @@ class IPChanger:
 
     def __init__(self, argv):
 
-        """Load User instance, check previous IP address against current external IP, and change if different."""
-
-        self.user = User()
+        """Check for command line arguments, load User instance,
+        check previous IP address against current external IP, and change if different."""
 
         opts = []
         try:
@@ -135,6 +134,7 @@ class IPChanger:
             sys.exit(1)
 
         finally:
+            self.user = User()
             if opts:
                 for opt, arg in opts:
                     if opt == '-h':
