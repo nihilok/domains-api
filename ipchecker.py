@@ -207,20 +207,24 @@ class IPChanger:
             # Unsuccessful requests:
             elif response == 'nohost' or response == 'notfqdn':
                 msg = "The hostname does not exist, is not a fully qualified domain" \
-                      " or does not have Dynamic DNS enabled."
+                      " or does not have Dynamic DNS enabled. The script will not be " \
+                      "able to run until you fix this. See https://support.google.com/domains/answer/6147083?hl=en-CA" \
+                      " for API documentation"
                 logger.warning(msg)
                 if input("Recreate the API profile? (Y/n):").lower() != 'n':
-                    self.user.set_credentials()
+                    self.user.set_credentials(update=True)
+                    self.domains_api_call()
                 else:
                     self.user.send_notification(self.current_ip, 'error', msg)
             else:
                 logger.warning("Could not authenticate with these credentials")
                 if input("Recreate the API profile? (Y/n):").lower() != 'n':
-                    self.user.set_credentials()
+                    self.user.set_credentials(update=True)
+                    self.domains_api_call()
                 else:
                     self.user.delete_user()
                     logger.warning('API authentication failed, user profile deleted')
-            self.domains_api_call()
+                    sys.exit(2)
 
         except Exception as e:  # Non-API related errors
             logger.warning(f'API call failed: {e}')
