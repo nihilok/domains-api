@@ -25,7 +25,7 @@ def get_cwd():
 
 
 FILE_PATH = get_cwd()
-USER_PICKLE = '%s/.user.p' % FILE_PATH
+USER_PICKLE = '%s/.user' % FILE_PATH
 LOG_FILE = '%s/ipchecker.log' % FILE_PATH
 
 logger = logging.getLogger('')
