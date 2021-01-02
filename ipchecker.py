@@ -35,7 +35,6 @@ logger.addHandler(sh)
 logger.addHandler(fh)
 
 
-
 class User:
     BASE_URL = '@domains.google.com/nic/update?hostname='
 
@@ -51,7 +50,7 @@ class User:
             self.notifications = input("Enable email notifications? Y/all(default); 1/errors only; n/no: ").lower()
             self.gmail_address, self.gmail_password = self.set_email()
             self.save_user()
-            logging.info('New user created. (See `python ipchecker.py -h` for help changing/removing user)')
+            logging.info('New user created. (See `python3 ipchecker.py --help` for help changing/removing the user)')
 
     def set_credentials(self):
 
