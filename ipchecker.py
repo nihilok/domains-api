@@ -69,7 +69,7 @@ class User:
 
         """Take/return inputs for Gmail credentials if notifications enabled"""
 
-        self.notifications = input("Enable email notifications? Y/all(default); 1/errors only; n/no: ").lower()
+        self.notifications = input("Enable email notifications? [Y]all(default); [1]errors only; [n]no: ").lower()
         if self.notifications != 'n':
             self.gmail_address = input("What's your email address?: ")
             self.gmail_password = base64.b64encode(getpass("What's your email password?: ").encode("utf-8"))
