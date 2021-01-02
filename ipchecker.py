@@ -45,7 +45,7 @@ class User:
         or load previous user profile"""
 
         if os.path.isfile(f".user.pickle"):
-            self.load_user()
+            self.__dict__.update(self.load_user().__dict__)
         else:
             self.notifications = 'Y'
             self.domain, self.DNS_username, self.DNS_password, self.req_url = self.set_credentials()
@@ -104,9 +104,10 @@ class User:
         with open(f'.user.pickle', 'wb') as pickle_file:
             pickle.dump(self, pickle_file)
 
-    def load_user(self, pickle_file=f'.user.pickle'):
+    @staticmethod
+    def load_user(pickle_file=f'.user.pickle'):
         with open(pickle_file, 'rb') as pickle_file:
-            self.__dict__.update(pickle.load(pickle_file).__dict__)
+            return pickle.load(pickle_file)
 
     @staticmethod
     def delete_user():
@@ -134,7 +135,7 @@ class IPChanger:
             sys.exit(1)
 
         finally:
-            self.user = User()
+
             if opts:
                 for opt, arg in opts:
                     if opt == '-h':
@@ -150,23 +151,26 @@ class IPChanger:
                         )
 
                     elif opt in ("-c", "--credentials"):
+                        self.user = User()
                         self.user.set_credentials(update=True)
                         self.domains_api_call()
                         logger.info('***API credentials changed***')
 
                     elif opt in ("-d", "--delete"):
+                        self.user = User()
                         self.user.delete_user()
                         logger.info('***User deleted***')
                         print('>>>Run the script without arguments to create a new user.')
 
                     elif opt in ("-e", "--email"):
+                        self.user = User()
                         self.user.set_email()
                         self.user.save_user()
                         logger.info('***Notification settings changed***')
 
                     elif opt in ("-u", "--user_pickle"):
                         try:
-                            self.user.load_user(pickle_file=arg)
+                            self.user = User.load_user(pickle_file=arg)
                             self.user.save_user()
                             logger.info('***User changed***')
                         except Exception as e:
