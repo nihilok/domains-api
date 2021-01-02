@@ -144,8 +144,8 @@ class IPChanger:
         ipchecker.py -c --credentials       || change API credentials
         ipchecker.py -e --email             || change email notification settings
         ipchecker.py -d --delete_user       || delete current user profile
-        ipchecker.py -u new_user.pickle     || load user from pickle_file (or `--user_pickle new_user.pickle`)
-                                               **this will overwrite your current user profile without warning!**
+        ipchecker.py -u new_user.pickle     || (or `--user_pickle new_user.pickle`) load user from pickle_file*
+                                               *this will overwrite your current user profile without warning!
                             """
                         )
 
