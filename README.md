@@ -32,3 +32,16 @@ The script logs to both `ipchecker.log` in the script's own directory and stdout
 If you forget your IP or need to check it for any reason, running `ipchecker.py` without options will log your current IP to the terminal. 
 
 As well as the command line options, to change your user details or delete them, you can also just delete the `/.user` file.
+
+    ipChecker.py help manual (command line options):
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ipchecker.py                        || -run the script normally without arguments
+    ipchecker.py -h --help              || -show this help manual
+    ipchecker.py -c --credentials       || -change API credentials
+    ipchecker.py -e --email             || -email set up wizard > use to delete email credentials (choose 'n')
+    ipchecker.py -n --notifications     || -toggle email notification settings > will not delete email address
+    ipchecker.py -d --delete_user       || -delete current user profile
+    ipchecker.py -u path/to/user.pickle || -(or `--user_load path/to/user.pickle`) load user from file**
+                                        || **this will overwrite any current user profile without warning!
+                                        || **Backup "/.user" file to store multiple profiles.
+
