@@ -24,6 +24,6 @@ On **Windows** you can use Task Scheduler; on **Linux/Mac**, simply add `ipcheck
 
 Logs to `ipchecker.log` in the same directory and stdout so that the logs also appear in the cron log. Check the logs if the script does not run as expected, or to see when the IP was last checked.
 
-If you forget your IP or need to check it for any reason, running `ipchecker.py` at any time will log your current IP to the console. 
+If you forget your IP or need to check it for any reason, running `ipchecker.py` without options at any time will log your current IP to the console. 
 
 To change your user details or delete them, delete the `user.pickle` file.
