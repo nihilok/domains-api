@@ -1,5 +1,5 @@
 from ipchecker import User
-from gkeep_funcs import gkeep_login, delete_test_notes
+from gkeep_funcs import gkeep_login, delete_test_notes, new_label, create_note
 
 
 user = User()
@@ -30,5 +30,12 @@ def auto_create_api_profile():
     user.save_user()
 
 
+def save_keys_to_keep_notes():
+    title = user.domain
+    text = f'{user.DNS_username}\n{user.DNS_password}'
+    note = create_note(title, text, 'domains api')
+    return note
+
+
 if __name__ == "__main__":
-    delete_test_notes()
+    print(save_keys_to_keep_notes())
