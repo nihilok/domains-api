@@ -31,10 +31,10 @@ def new_label(label_name):
     if label_name not in get_labels():
         label = keep.createLabel(label_name)
         keep.sync()
-        print('label added!')
+        print('new label added!')
         return label
     else:
-        print('label exists!')
+        print('label exists')
         return keep.findLabel(query=label_name)
 
 
@@ -44,6 +44,7 @@ def create_note(title='Test', text='Test note', label='test'):
     note.labels.add(new_label(label))
     note.pinned = True
     keep.sync()
+    print('note created')
     return note
 
 

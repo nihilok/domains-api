@@ -1,6 +1,5 @@
 from ipchecker import User
-from gkeep_funcs import gkeep_login, delete_test_notes, new_label, create_note, delete_label
-
+from gkeep_funcs import gkeep_login, create_note
 
 user = User()
 
@@ -38,4 +37,4 @@ def save_keys_to_keep_notes():
 
 
 if __name__ == "__main__":
-    print('nothing happened')
+    create_note(input('Title: '), input('Note: '), input('Label: '))
