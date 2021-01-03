@@ -9,6 +9,7 @@ keep = Keep()
 
 def gkeep_login():
     keep.login(user.gmail_address, base64.b64decode(user.gmail_password).decode('utf-8'))
+    return keep
 
 
 def create_note(title='Test', text='Test note'):
@@ -17,4 +18,12 @@ def create_note(title='Test', text='Test note'):
     keep.sync()
     return note
 
+
+def delete_test_notes():
+    gkeep_login()
+    for note in keep.all():
+        if note.title == 'Test':
+            note.delete()
+            print('note deleted')
+    keep.sync()
 

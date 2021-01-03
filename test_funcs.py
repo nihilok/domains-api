@@ -1,24 +1,23 @@
 from ipchecker import User
+from gkeep_funcs import gkeep_login, delete_test_notes
 import gkeepapi
 import base64
 
+
 user = User()
-print(user.gmail_address)
+
 
 def change_previous_ip():
     user.previous_ip = '42'
     user.save_user()
 
 
-keep = gkeepapi.Keep()
-keep.login(user.gmail_address, base64.b64decode(user.gmail_password).decode('utf-8'))
-
-
 def read_api_auth_details():
-    gnotes = keep.find(query=user.domain)
+    keep = gkeep_login()
+    g_notes = keep.find(query=user.domain)
     username, password, domain = None, None, None
     try:
-        for note in gnotes:
+        for note in g_notes:
             note = str(note).split('\n')
             domain = note[0]
             username = note[1]
@@ -34,7 +33,4 @@ def auto_create_api_profile():
 
 
 if __name__ == "__main__":
-    for note in keep.all():
-        if note.title == 'Test':
-            note.delete()
-            print('note deleted')
+    delete_test_notes()
