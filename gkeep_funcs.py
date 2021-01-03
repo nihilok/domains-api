@@ -15,7 +15,7 @@ def gkeep_login():
 def delete_test_notes():
     keep = gkeep_login()
     for note in keep.all():
-        if note.title == 'Test':
+        if 'test' in [label.name for label in note.labels.all()]:
             note.delete()
             print('note deleted')
     keep.sync()
@@ -67,4 +67,4 @@ def delete_label(name):
 
 
 if __name__ == "__main__":
-    print('nothing happened')
+    delete_test_notes()
