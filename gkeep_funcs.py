@@ -47,9 +47,23 @@ def create_note(title='Test', text='Test note', label='test'):
     return note
 
 
-def delete_labels():
+def delete_all_labels():
     keep = gkeep_login()
     for label in keep.labels():
         label.delete()
     keep.sync()
 
+
+def delete_label(name):
+    keep = gkeep_login()
+    label = keep.findLabel(query=name)
+    if label:
+        label.delete()
+        keep.sync()
+        print(f'label "{name}" deleted')
+    else:
+        print(f'label with name "{name}" does not exist')
+
+
+if __name__ == "__main__":
+    pass

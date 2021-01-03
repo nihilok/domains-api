@@ -1,5 +1,5 @@
 from ipchecker import User
-from gkeep_funcs import gkeep_login, delete_test_notes, new_label, create_note
+from gkeep_funcs import gkeep_login, delete_test_notes, new_label, create_note, delete_label
 
 
 user = User()
@@ -38,4 +38,4 @@ def save_keys_to_keep_notes():
 
 
 if __name__ == "__main__":
-    print(save_keys_to_keep_notes())
+    delete_label('python')
