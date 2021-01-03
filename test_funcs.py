@@ -38,4 +38,4 @@ def save_keys_to_keep_notes():
 
 
 if __name__ == "__main__":
-    delete_label('python')
+    pass

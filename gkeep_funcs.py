@@ -66,4 +66,4 @@ def delete_label(name):
 
 
 if __name__ == "__main__":
-    pass
+    print('nothing happened')
