@@ -5,13 +5,13 @@ import base64
 user = User()
 print(user.gmail_address)
 
-keep = gkeepapi.Keep()
-keep.login(user.gmail_address, base64.b64decode(user.gmail_password).decode('utf-8'))
-
-
 def change_previous_ip():
     user.previous_ip = '42'
     user.save_user()
+
+
+keep = gkeepapi.Keep()
+keep.login(user.gmail_address, base64.b64decode(user.gmail_password).decode('utf-8'))
 
 
 def read_api_auth_details():
