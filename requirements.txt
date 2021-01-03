@@ -1,2 +1,0 @@
-requests~=2.23.0
-gkeepapi~=0.13.4
