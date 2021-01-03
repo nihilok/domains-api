@@ -257,7 +257,7 @@ class IPChanger:
                 else:
                     self.user.delete_user()
                     logger.warning('API authentication failed, user profile deleted')
-                    sys.exit(2)
+                    sys.exit(1)
         # Local connection related errors:
         except ReqConError as e:
             log_msg = 'Connection Error: %s' % e
