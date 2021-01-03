@@ -113,8 +113,8 @@ class User:
 
     @staticmethod
     def load_user(pickle_file=USER_PICKLE):
-        with open(pickle_file, 'rb') as pickle_file:
-            return pickle.load(pickle_file)
+        with open(pickle_file, 'rb') as user_pickle:
+            return pickle.load(user_pickle)
 
     @staticmethod
     def delete_user():
@@ -130,19 +130,21 @@ class IPChanger:
 
         opts = []
         try:
-            opts, _args = getopt.getopt(argv, 'cdehnu:', ['credentials',
-                                                          'delete_user',
-                                                          'email',
-                                                          'help',
-                                                          'notifications',
-                                                          'user_load='])
             self.current_ip = get('https://api.ipify.org').text
+            opts, _args = getopt.getopt(argv,
+                                        'cdehnu:',
+                                        ['credentials',
+                                         'delete_user',
+                                         'email',
+                                         'help',
+                                         'notifications',
+                                         'user_load='])
         except getopt.GetoptError:
             print('ipchecker.py -h --help')
             sys.exit(2)
         except ReqConError:
             logger.warning('Connection Error')
-            sys.exit(1)
+            sys.exit(5)
         finally:
             if opts:
                 for opt, arg in opts:
@@ -191,8 +193,9 @@ class IPChanger:
                         log_msg = '***Notification settings changed to %s***' % n_options[self.user.notifications]
                         logger.info(log_msg)
                         if self.user.notifications in ('Y', 'e') and not self.user.gmail_address:
-                            logger.info('No email user set, running email set up wizard...')
+                            logger.info('No email user set, running email set up wizard from beginning...')
                             self.user.set_email()
+                            self.user.save_user()
                     elif opt in ('-u', '--user_load'):
                         try:
                             self.user = User.load_user(pickle_file=arg)
@@ -255,7 +258,8 @@ class IPChanger:
                     self.user.delete_user()
                     logger.warning('API authentication failed, user profile deleted')
                     sys.exit(2)
-        except ReqConError as e:  # Local connection related errors
+        # Local connection related errors:
+        except ReqConError as e:
             log_msg = 'Connection Error: %s' % e
             logger.warning(log_msg)
             self.user.send_notification(self.current_ip, 'error', e)
