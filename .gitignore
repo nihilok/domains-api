@@ -1,4 +1,2 @@
-/.user.pickle
-/.user
-/user.bak
-/test_funcs.py
+/domains_api/.domains.user
+/domains_api/domains-api.log
