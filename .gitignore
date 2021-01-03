@@ -1,3 +1,5 @@
 /.user.pickle
 /.user
 /user.bak
+/.domains.user
+/domains-api.log
