@@ -1,7 +1,5 @@
 from ipchecker import User
 from gkeep_funcs import gkeep_login, delete_test_notes
-import gkeepapi
-import base64
 
 
 user = User()
