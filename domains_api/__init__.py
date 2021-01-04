@@ -215,9 +215,6 @@ class IPChanger:
             print('''Usage:
 python/python3 -m domains_api --help''')
             sys.exit(2)
-        except ReqConError:
-            logger.warning('Connection Error')
-            sys.exit(1)
         if opts:
             arg_parse(opts, self)
         self.user = User()
