@@ -229,7 +229,7 @@ class IPChanger:
 
         try:
             req = post(f'{self.user.req_url}{self.current_ip}')
-            response = req.content.decode('utf-8')
+            response = req.text
             log_msg = 'Google Domains API response: %s' % response
             logger.info(log_msg)
 
