@@ -40,6 +40,14 @@ sh.setFormatter(sh_formatter)
 logger.addHandler(sh)
 logger.addHandler(fh)
 
+ARG_STRING = 'cdehinu:'
+ARG_LIST = ['credentials',
+            'delete_user',
+            'email',
+            'help',
+            'ip',
+            'notifications',
+            'user_load=']
 
 def arg_parse(opts, instance):
 
@@ -196,14 +204,7 @@ class IPChanger:
 
         self.current_ip = self.get_ip()
         try:
-            opts, _args = getopt.getopt(argv, 'cdehinu:', ['credentials',
-                                                           'delete_user',
-                                                           'email',
-                                                           'help',
-                                                           'ip',
-                                                           'notifications',
-                                                           'user_load='])
-
+            opts, _args = getopt.getopt(argv, ARG_STRING, ARG_LIST)
         except getopt.GetoptError:
             print('''Usage:
 python/python3 -m domains_api --help''')
@@ -235,7 +236,7 @@ python/python3 -m domains_api --help''')
             current_ip = get('https://api.ipify.org').text
             return current_ip
         except ReqConError:
-            logger.warning('Connection Error')
+            logger.warning('Connection Error. Could not reach ipify.org')
             return
 
     def domains_api_call(self):
