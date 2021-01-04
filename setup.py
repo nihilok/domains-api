@@ -14,7 +14,7 @@ setup(
     description='auto updates dynamic dns rules on domains.google.com',
     long_description=open('README.md').read() + '\n\n' + open('CHANGELOG.txt').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/nihilok/ipChecker',
+    url='https://github.com/nihilok/domains-api',
     author='Michael Jarvis',
     author_email='mjfullstack@gmail.com',
     classifiers=classifiers,
