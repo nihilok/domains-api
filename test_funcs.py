@@ -38,4 +38,4 @@ def save_keys_to_keep_notes():
 
 if __name__ == "__main__":
     # create_note(input('Title: '), input('Note: '), input('Label: '))
-    auto_create_api_profile()
+    change_previous_ip()
