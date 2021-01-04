@@ -39,18 +39,19 @@ Check `~/cron.log` if the script does not run as expected, or to see when the IP
 
 The logs are written to both `/domains-api.log` in lib dir or `LOCALAPPDATA` (win), and stdout, so that they also appear in the terminal (& cron log).
 
-If you forget your IP or need to check it for any reason, running
+If you forget your IP or need to check it for any reason, running:
 
-`python -m domains_api` 
+`python -m domains_api -i` 
 
-without options will log your current IP to the terminal.
+...will log your current external IP to the terminal.
 
-Options include:
+Other options include:
 
     domains-api help manual (command line options):
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     python -m domains_api                    || -run the script normally without arguments
     python -m domains_api -h --help          || -show this help manual
+    python -m domains_api -i --ip            || -show current external IP address
     python -m domains_api -c --credentials   || -change API credentials
     python -m domains_api -e --email         || -email set up wizard > use to delete email credentials (choose 'n')
     python -m domains_api -n --notifications || -toggle email notification settings > will not delete email address
@@ -58,4 +59,3 @@ Options include:
     python -m domains_api -u user.file       || (or "--user_load path/to/user.file") -load user from pickle file**
                                              || **this will overwrite any current user profile without warning!
                                              || **Backup "./.domains.user" file to store multiple profiles.
-
