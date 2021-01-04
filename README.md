@@ -35,7 +35,9 @@ If reducing downtime is essential, you could increase the frequency of checks to
 
 On Google Domains the default TTL for Dynamic DNS is 1 min, but unless you expect your external IP to change very frequently, more regular cron jobs might be a slight waste of resources; even so, the script is very light weight.
 
-Check `~/cron.log` if the script does not run as expected, or to see when the IP was last checked. The logs are written to both `/domains-api.log` in lib dir or `LOCALAPPDATA` (win), and stdout, so that they also appear in the terminal (& cron log).
+Check `~/cron.log` if the script does not run as expected, or to see when the IP was last checked.
+
+The logs are written to both `/domains-api.log` in lib dir or `LOCALAPPDATA` (win), and stdout, so that they also appear in the terminal (& cron log).
 
 If you forget your IP or need to check it for any reason, running
 
