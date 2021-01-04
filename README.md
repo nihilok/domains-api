@@ -43,7 +43,7 @@ If you forget your IP or need to check it for any reason, running:
 
 `python -m domains_api -i` 
 
-...will log your current external IP to the terminal.
+...will log your current external IP to the terminal without doing anything else.
 
 Other options include:
 

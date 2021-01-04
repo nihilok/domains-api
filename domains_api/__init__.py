@@ -55,8 +55,10 @@ def arg_parse(opts, instance):
 
     for opt, arg in opts:
         if opt in {'-i', '--ip'}:
-            log_msg = 'Current IP: %s' % instance.get_ip()
-            logger.info(log_msg)
+            print('''
+
+        [Domains API] Current IP: %s
+            ''' % instance.get_ip())
         elif opt in {'-h', '--help'}:
             print(
                 """
