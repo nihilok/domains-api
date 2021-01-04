@@ -33,8 +33,10 @@ fh = logging.FileHandler(LOG_FILE)
 sh = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter('[%(levelname)s]|%(asctime)s|%(message)s',
                               datefmt='%d %b %Y %H:%M:%S')
+sh_formatter = logging.Formatter('[%(levelname)s]|[%(name)s]|%(asctime)s| %(message)s',
+                                 datefmt='%Y-%m-%d %H:%M:%S')
 fh.setFormatter(formatter)
-sh.setFormatter(formatter)
+sh.setFormatter(sh_formatter)
 logger.addHandler(sh)
 logger.addHandler(fh)
 
@@ -44,7 +46,10 @@ def arg_parse(opts, instance):
     """Parses command line options: e.g. "python -m domains_api --help" """
 
     for opt, arg in opts:
-        if opt in {'-h', '--help'}:
+        if opt in {'-i', '--ip'}:
+            log_msg = 'Current IP: %s' % instance.get_ip()
+            logger.info(log_msg)
+        elif opt in {'-h', '--help'}:
             print(
                 """
 
@@ -52,6 +57,7 @@ def arg_parse(opts, instance):
     ```````````````````````````````````````````````````````````````````````````````````````
     python -m domains_api                    || -run the script normally without arguments
     python -m domains_api -h --help          || -show this help manual
+    python -m domains_api -i --ip            || -show current external IP address
     python -m domains_api -c --credentials   || -change API credentials
     python -m domains_api -e --email         || -email set up wizard > use to delete email credentials (choose 'n')
     python -m domains_api -n --notifications || -toggle email notification settings > will not delete email address
@@ -188,15 +194,16 @@ class IPChanger:
         """Check for command line arguments, load User instance,
         check previous IP address against current external IP, and change if different."""
 
-
+        self.current_ip = self.get_ip()
         try:
-            opts, _args = getopt.getopt(argv, 'cdehnu:', ['credentials',
-                                                          'delete_user',
-                                                          'email',
-                                                          'help',
-                                                          'notifications',
-                                                          'user_load='])
-            self.current_ip = get('https://api.ipify.org').text
+            opts, _args = getopt.getopt(argv, 'cdehinu:', ['credentials',
+                                                           'delete_user',
+                                                           'email',
+                                                           'help',
+                                                           'ip',
+                                                           'notifications',
+                                                           'user_load='])
+
         except getopt.GetoptError:
             print('''Usage:
 python/python3 -m domains_api --help''')
@@ -221,6 +228,15 @@ python/python3 -m domains_api --help''')
             setattr(self.user, 'previous_ip', self.current_ip)
             self.user.save_user()
             self.domains_api_call()
+
+    @staticmethod
+    def get_ip():
+        try:
+            current_ip = get('https://api.ipify.org').text
+            return current_ip
+        except ReqConError:
+            logger.warning('Connection Error')
+            return
 
     def domains_api_call(self):
 
