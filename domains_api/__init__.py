@@ -213,8 +213,8 @@ python/python3 -m domains_api --help''')
             sys.exit(1)
         if opts:
             arg_parse(opts, self)
+        self.user = User()
         try:
-            self.user = User()
             if self.user.previous_ip == self.current_ip:
                 log_msg = 'Current IP: %s (no change)' % self.user.previous_ip
                 logger.info(log_msg)
