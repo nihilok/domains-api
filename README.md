@@ -64,4 +64,37 @@ Other options include:
                                              || **these options will remove any current user profile without warning!
                                              || **Backup "./.domains.user" file to store multiple profiles.
 
-* *see changelog for very basic description of how to get this package working with Django/Apache2 and integrated into your application... more to come!
+### Example in Django/Apache2 application:
+
+In your Django virtual environment (recommended):
+
+`pip install domains-api APScheduler==3.6.3`
+
+Then, in your project you can create a new module called ipChanger in your project's root directory, with an empty `__init__.py` file and an `ip_changer.py` file.
+
+`ip_changer.py` should look something like this:
+
+```
+from apscheduler.schedulers.background import BackgroundScheduler
+from domains_api import IPChanger
+
+
+def start():
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(IPChanger, 'interval', minutes=10)
+    scheduler.start()
+```
+
+Careful not to call `IPChanger` within the `add_job()` method (no parentheses).
+
+Then you will need to add the following to your main app's `apps.py` file:
+
+```
+class MainConfig(AppConfig):
+    name = 'main'
+
+    def ready(self):
+        from ipChanger import ip_changer
+        ip_changer.start()
+```
+Before you fire up / restart your server you will need to run the script as the web server user (`www-data` for Apache), so that the server will have permission to create/update the log and user configuration files (in `<venv path>/site-packages/domains-api/`). You can do this with `sudo -u www-data /path/to/venv/bin/python3 -m domains_api`. It's important to specify the virtual environment's python path or www-data will use its own. You will then be asked to input your credentials as above. After this process is complete, you can restart your web server. Check `cat /var/log/apache2/error.log` and `<venv path>/site-packages/domains-api/domains-api.log` to see everything is working as expected.
