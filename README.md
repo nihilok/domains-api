@@ -9,7 +9,7 @@ Can be run from the command line like so:
 
 `python3 -m domains_api` (or `python` [windows])
 
-or imported into your projects in the normal way:
+or imported into your projects in the normal way*:
 ```
 >>>from domains_api import IPChanger
 >>>ipchanger = IPChanger()
@@ -63,3 +63,5 @@ Other options include:
     python -m domains_api -u user.file       || (or "--user_load path/to/user.file") -load user from pickle file**
                                              || **these options will remove any current user profile without warning!
                                              || **Backup "./.domains.user" file to store multiple profiles.
+
+* *see changelog for very basic description of how to get this package working with Django/Apache2 and integrated into your application... more to come!
