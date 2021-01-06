@@ -98,3 +98,11 @@ class MainConfig(AppConfig):
         ip_changer.start()
 ```
 Before you fire up / restart your server you will need to run the script as the web server user (`www-data` for Apache), so that the server will have permission to create/update the log and user configuration files (in `<venv path>/site-packages/domains-api/`). You can do this with `sudo -u www-data /path/to/venv/bin/python3 -m domains_api`. It's important to specify the virtual environment's python path or www-data will use its own. You will then be asked to input your credentials as above. After this process is complete, you can restart your web server. Check `cat /var/log/apache2/error.log` and `<venv path>/site-packages/domains-api/domains-api.log` to see everything is working as expected.
+
+An alternative method is to do the following on your domains-api package directory (as above):
+
+```
+sudo chown -R :www-data /path/to/venv/lib/python3.8/site-packages/my_module
+sudo chmod -R g+rws /path/to/venv/lib/python3.8/site-packages/my_module
+```
+This will set the permissions to read and write for Apache2 and will also do the same for any future files / dirs created (+s).
