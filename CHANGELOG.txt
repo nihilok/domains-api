@@ -1,0 +1,25 @@
+Change Log
+==========
+
+0.1 - 0.1.2 (03/01/2020)
+------------------------
+- First Release
+- Code review from:
+https://codereview.stackexchange.com/questions/254272/dynamic-dns-ip-checker-changer-for-google-domains-in-python
+
+0.1.3 - .1.3.6 (04/01/2020)
+-------------------------
+- Updated GitHub url and long description / readme.
+- Added option to show ip (only) from command line (domains_api -i --ip).
+- Added test function to master branch: simulate change in ip (commented in __main__.py)
+- Minor bugfixes
+
+0.1.4 - .1.4.1 (05/01/2020)
+----------------
+- Fixed PermissionError when working with Apache2 & Django (must run script first as www-data e.g: "sudo -u www-data /venv/bin/python -m domains_api" - this will allow the apache server to be the owner of the log/user files when they are set up with least hassle. Missing this set the server will fail with an EOF error, as input is needed to initialize the first User instance. - bear in mind that running the script as a different user in the same environment will fail unless you change permissions on the log/user file located in the package directory)
+- Fixed absolute paths in User.load_user() and User().save_user() functions.
+- Updated README with Django/Apache2 example.
+
+0.1.4.2 (06/01/2020)
+---------------------
+- Added email outbox for offline messages
