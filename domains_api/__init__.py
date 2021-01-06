@@ -255,7 +255,7 @@ python/python3 -m domains_api --help''')
 
         """Parses command line options: e.g. "python -m domains_api --help" """
 
-        for opt, arg in np.array(opts):
+        for opt, arg in opts:
             if opt in {'-i', '--ip'}:
                 print('''
             [Domains API] Current external IP: %s
