@@ -10,102 +10,36 @@ from email.errors import MessageError
 from email.message import EmailMessage
 from getpass import getpass
 from itertools import cycle
-from pathlib import Path
 
 from requests import get, post
 from requests.exceptions import ConnectionError as ReqConError
 
 
-if os.name == "nt":
-    LOG_FILE = Path(os.getenv('LOCALAPPDATA')) / '.domains-api.log'
-    USER_PICKLE = Path(os.getenv('LOCALAPPDATA')) / '.domains.user'
+def get_cwd():
 
-else:
-    DIR = os.path.dirname(os.path.abspath(__file__))
-    LOG_FILE = Path(DIR) / 'domains-api.log'
-    USER_PICKLE = Path(DIR) / '.domains.user'
-    os.chdir(DIR)
+    """Change &/ return working directory depending on OS: for absolute file paths
+    Cron jobs will have '/' as their working dir by default."""
+
+    if os.name == 'nt':
+        return os.path.dirname(os.path.realpath(__file__))
+    os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
+    return os.getcwd()
 
 
-logger = logging.getLogger(__name__)
+FILE_PATH = get_cwd()
+USER_PICKLE = '%s/.user' % FILE_PATH
+LOG_FILE = '%s/ipchecker.log' % FILE_PATH
+
+logger = logging.getLogger('')
 logger.setLevel(logging.INFO)
 fh = logging.FileHandler(LOG_FILE)
 sh = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter('[%(levelname)s]|%(asctime)s|%(message)s',
                               datefmt='%d %b %Y %H:%M:%S')
-sh_formatter = logging.Formatter('[%(levelname)s]|[%(name)s]|%(asctime)s| %(message)s',
-                                 datefmt='%Y-%m-%d %H:%M:%S')
 fh.setFormatter(formatter)
-sh.setFormatter(sh_formatter)
+sh.setFormatter(formatter)
 logger.addHandler(sh)
 logger.addHandler(fh)
-
-
-def arg_parse(opts, instance):
-
-    """Parses command line options: e.g. "python -m domains_api --help" """
-
-    for opt, arg in opts:
-        if opt in {'-i', '--ip'}:
-            log_msg = 'Current IP: %s' % instance.get_ip()
-            logger.info(log_msg)
-        elif opt in {'-h', '--help'}:
-            print(
-                """
-
-    ipChecker.py help manual (command line options):
-    ``````````````````````````````````````````````````````````````````````````````````````````````````````````
-    
-    ipchecker.py                        || -run the script normally without arguments
-    ipchecker.py -h --help              || -show this help manual
-    ipchecker.py -i --ip                || -show current external IP address
-    ipchecker.py -c --credentials       || -change API credentials
-    ipchecker.py -e --email             || -email set up wizard > use to delete email credentials (choose 'n')
-    ipchecker.py -n --notifications     || -toggle email notification settings > will not delete email address
-    ipchecker.py -d --delete_user       || -delete current user profile
-    ipchecker.py -u path/to/user.file   || (or `--user_load user.file`) -load user from file**
-                                        || **this will overwrite any current user profile without warning!
-                                        || **Backup "/.user" file to store multiple profiles.
-"""
-            )
-        elif opt in {'-c', '--credentials'}:
-            user = User()
-            user.set_credentials(update=True)
-            instance.domains_api_call()
-            logger.info('***API credentials changed***')
-        elif opt in {'-d', '--delete'}:
-            User.delete_user()
-            logger.info('***User deleted***')
-            print('>>>Run the script without options to create a new user, or '
-                  '"python3 -m domains_api -u path/to/pickle" to load one from file')
-        elif opt in {'-e', '--email'}:
-            user = User()
-            user.set_email()
-            user.save_user()
-            logger.info('***Notification settings changed***')
-        elif opt in {'-n', '--notifications'}:
-            n_options = {'Y': '[all changes]', 'e': '[errors only]', 'n': '[none]'}
-            user = User()
-            options_iter = cycle(n_options.keys())
-            for option in options_iter:
-                if user.notifications == option:
-                    break
-            user.notifications = next(options_iter)
-            user.save_user()
-            log_msg = '***Notification settings changed to %s***' % n_options[user.notifications]
-            logger.info(log_msg)
-            if user.notifications in ('Y', 'e') and not user.gmail_address:
-                logger.info('No email user set, running email set up wizard...')
-                user.set_email()
-        elif opt in {'-u', '--user_load'}:
-            try:
-                user = User.load_user(pickle_file=arg)
-                user.save_user()
-                logger.info('***User loaded***')
-            except FileNotFoundError as e:
-                logger.warning(e)
-                sys.exit(2)
-        sys.exit()
 
 
 class User:
@@ -179,8 +113,8 @@ class User:
 
     @staticmethod
     def load_user(pickle_file=USER_PICKLE):
-        with open(pickle_file, 'rb') as user_pickle:
-            return pickle.load(user_pickle)
+        with open(pickle_file, 'rb') as pickle_file:
+            return pickle.load(pickle_file)
 
     @staticmethod
     def delete_user():
@@ -193,48 +127,98 @@ class IPChanger:
 
         """Check for command line arguments, load User instance,
         check previous IP address against current external IP, and change if different."""
-        self.current_ip = self.get_ip()
+
+        opts = []
         try:
-            opts, _args = getopt.getopt(argv,
-                                        'cdehnu:',
-                                        ['credentials',
-                                         'delete_user',
-                                         'email',
-                                         'help',
-                                         'notifications',
-                                         'user_load='])
+            opts, _args = getopt.getopt(argv, 'cdehnu:', ['credentials',
+                                                          'delete_user',
+                                                          'email',
+                                                          'help',
+                                                          'notifications',
+                                                          'user_load='])
+            self.current_ip = get('https://api.ipify.org').text
         except getopt.GetoptError:
             print('ipchecker.py -h --help')
             sys.exit(2)
         except ReqConError:
             logger.warning('Connection Error')
-            sys.exit(5)
-        if opts:
-            arg_parse(opts, self)
-        self.user = User()
-        try:
-            if self.user.previous_ip == self.current_ip:
-                log_msg = 'Current IP: %s (no change)' % self.user.previous_ip
-                logger.info(log_msg)
-            else:
-                self.user.previous_ip = self.current_ip
-                self.domains_api_call()
-                log_msg = 'Newly recorded IP: %s' % self.user.previous_ip
-                logger.info(log_msg)
-                self.user.save_user()
-        except AttributeError:
-            setattr(self.user, 'previous_ip', self.current_ip)
-            self.user.save_user()
-            self.domains_api_call()
+            sys.exit(1)
+        finally:
+            if opts:
+                for opt, arg in opts:
+                    if opt in ('-h', '--help'):
+                        print(
+                            """
 
-    @staticmethod
-    def get_ip():
-        try:
-            current_ip = get('https://api.ipify.org').text
-            return current_ip
-        except ReqConError:
-            logger.warning('Connection Error')
-            return
+        ipChecker.py help manual (command line options):
+        ``````````````````````````````````````````````````````````````````````````````````````````````````````````
+
+        ipchecker.py                        || -run the script normally without arguments
+        ipchecker.py -h --help              || -show this help manual
+        ipchecker.py -c --credentials       || -change API credentials
+        ipchecker.py -e --email             || -email set up wizard > use to delete email credentials (choose 'n')
+        ipchecker.py -n --notifications     || -toggle email notification settings > will not delete email address
+        ipchecker.py -d --delete_user       || -delete current user profile
+        ipchecker.py -u path/to/user.file   || (or `--user_load user.file`) -load user from file**
+                                            || **this will overwrite any current user profile without warning!
+                                            || **Backup "/.user" file to store multiple profiles.
+"""
+                        )
+                    elif opt in ('-c', '--credentials'):
+                        self.user = User()
+                        self.user.set_credentials(update=True)
+                        self.domains_api_call()
+                        logger.info('***API credentials changed***')
+                    elif opt in ('-d', '--delete'):
+                        User.delete_user()
+                        logger.info('***User deleted***')
+                        print('>>>Run the script without options to create a new user, or '
+                              '`ipchecker.py -u path/to/pickle` to load one from file')
+                    elif opt in ('-e', '--email'):
+                        self.user = User()
+                        self.user.set_email()
+                        self.user.save_user()
+                        logger.info('***Notification settings changed***')
+                    elif opt in ('-n', '--notifications'):
+                        n_options = {'Y': '[all changes]', 'e': '[errors only]', 'n': '[none]'}
+                        self.user = User()
+                        options_iter = cycle(n_options.keys())
+                        for option in options_iter:
+                            if self.user.notifications == option:
+                                break
+                        self.user.notifications = next(options_iter)
+                        self.user.save_user()
+                        log_msg = '***Notification settings changed to %s***' % n_options[self.user.notifications]
+                        logger.info(log_msg)
+                        if self.user.notifications in ('Y', 'e') and not self.user.gmail_address:
+                            logger.info('No email user set, running email set up wizard...')
+                            self.user.set_email()
+                    elif opt in ('-u', '--user_load'):
+                        try:
+                            self.user = User.load_user(pickle_file=arg)
+                            self.user.save_user()
+                            logger.info('***User loaded***')
+                        except FileNotFoundError as e:
+                            logger.warning(e)
+                            sys.exit(2)
+                    sys.exit()
+            try:
+                self.user = User()
+                if self.user.previous_ip == self.current_ip:
+                    log_msg = 'Current IP: %s (no change)' % self.user.previous_ip
+                    logger.info(log_msg)
+                else:
+                    self.user.previous_ip = self.current_ip
+                    self.domains_api_call()
+                    log_msg = 'Newly recorded IP: %s' % self.user.previous_ip
+                    logger.info(log_msg)
+                    self.user.save_user()
+            except AttributeError:
+                setattr(self.user, 'previous_ip', self.current_ip)
+                self.user.save_user()
+                self.domains_api_call()
+            finally:
+                sys.exit()
 
     def domains_api_call(self):
 
@@ -242,7 +226,7 @@ class IPChanger:
 
         try:
             req = post(f'{self.user.req_url}{self.current_ip}')
-            response = req.text
+            response = req.content.decode('utf-8')
             log_msg = 'Google Domains API response: %s' % response
             logger.info(log_msg)
 
@@ -270,9 +254,8 @@ class IPChanger:
                 else:
                     self.user.delete_user()
                     logger.warning('API authentication failed, user profile deleted')
-                    sys.exit(1)
-        # Local connection related errors:
-        except ReqConError as e:
+                    sys.exit(2)
+        except ReqConError as e:  # Local connection related errors
             log_msg = 'Connection Error: %s' % e
             logger.warning(log_msg)
             self.user.send_notification(self.current_ip, 'error', e)
