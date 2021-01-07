@@ -2,14 +2,12 @@
 import os
 import sys
 import getopt
-import logging
 import base64
 import smtplib
 from email.errors import MessageError
 from email.message import EmailMessage
 from getpass import getpass
 from itertools import cycle
-from pathlib import Path
 
 from requests import get, post
 from requests.exceptions import ConnectionError as ReqConError
@@ -111,7 +109,7 @@ class IPChanger:
         self.fh = FileHandlers()
         if os.path.isfile(self.fh.user_file):
             self.user = self.fh.load_user(self.fh.user_file)
-            self.fh.log('User loaded from pickle' 'debug')
+            self.fh.log('User loaded from pickle', 'debug')
         else:
             self.user = User()
         self.current_ip = self.get_set_ip()
@@ -140,6 +138,9 @@ python/python3 -m domains_api --help''')
             setattr(self.user, 'previous_ip', self.current_ip)
             self.fh.save_user(self.user)
             self.domains_api_call()
+        finally:
+            if self.fh.op_sys == 'pos' and os.geteuid() == 0:
+                self.fh.set_permissions(self.fh.user_file)
 
         # Send outbox emails:
         if self.user.outbox:

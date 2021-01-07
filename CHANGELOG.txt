@@ -17,9 +17,16 @@ https://codereview.stackexchange.com/questions/254272/dynamic-dns-ip-checker-cha
 0.1.4 - .1.4.1 (05/01/2020)
 ----------------
 - Fixed PermissionError when working with Apache2 & Django (must run script first as www-data e.g: "sudo -u www-data /venv/bin/python -m domains_api" - this will allow the apache server to be the owner of the log/user files when they are set up with least hassle. Missing this set the server will fail with an EOF error, as input is needed to initialize the first User instance. - bear in mind that running the script as a different user in the same environment will fail unless you change permissions on the log/user file located in the package directory)
-- Fixed absolute paths in User.load_user() and User().save_user() functions.
+- Fixed absolute paths in `User.load_user()` and `User().save_user()` functions.
 - Updated README with Django/Apache2 example.
 
 0.1.4.2 (06/01/2020)
 ---------------------
 - Added email outbox for offline messages
+
+0.1.4.3 (07/01/2020)
+---------------------
+- Refactored all file/log handling methods into file_handlers.FileHandlers
+- Fixed permissions issues (better than before) - run package with sudo the first time to initialize files.
+- Changed posix directory for logs and user files to `domains_api/.domains/`
+- `save_user`/`load_user` and `delete_user` methods are now part of the FileHandlers class.

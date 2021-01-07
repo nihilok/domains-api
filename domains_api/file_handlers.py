@@ -12,7 +12,7 @@ class FileHandlers:
         self.path, self.op_sys = self.file_handling(path)
         self.user_file = os.path.abspath(self.path / f'{path}.user')
         self.log_file = os.path.abspath(self.path / f'{path}.log')
-        if not os.path.exists(self.log_file) or os.path.exists(self.user_file):
+        if not os.path.exists(self.log_file) or not os.path.exists(self.user_file):
             if self.op_sys == 'nt':
                 self.make_directories()
             elif os.geteuid() == 0:
@@ -24,7 +24,6 @@ class FileHandlers:
         self.own_log, self.sys_log = self.initialize_loggers()
         if self.op_sys == 'pos' and os.geteuid() == 0:
             self.set_permissions(self.log_file)
-            self.set_permissions(self.user_file)
 
     @staticmethod
     def file_handling(path):
@@ -39,10 +38,16 @@ class FileHandlers:
     def make_directories(self):
         os.makedirs(self.path, exist_ok=True)
 
+    @staticmethod
     def set_permissions(path, gid=33):
         os.chown(path, int(os.environ['SUDO_GID']), gid)
-        os.chmod(path, 0o665)
-        subprocess.check_call(['chmod', 'g+s', path])
+        print(f'owner set on {path}')
+        if os.path.isdir(path):
+            os.chmod(path, 0o770)
+        elif os.path.isfile(path):
+            os.chmod(path, 0o665)
+
+        # subprocess.check_call(['chmod', 'g+s', path])
 
     def initialize_loggers(self):
         sys_log = logging.getLogger('domains_api')
