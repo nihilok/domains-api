@@ -97,9 +97,9 @@ class MainConfig(AppConfig):
         from ipChanger import ip_changer
         ip_changer.start()
 ```
-Before you fire up / restart your server you will need to run the script as sudo, so that the the appropriate permissions can be set to enable the web server user (www-data) to create/update the log and user configuration files (in `<venv path>/site-packages/domains-api/`).If you have the package installed both in and outside your virtual environment (in two or more locations), it's important to specify the virtual environment's python path or sudo will use the root-owned one. You will then be asked to input your credentials as above. After this process is complete, you can restart your web server. Check `cat /var/log/apache2/error.log` and `<venv path>/site-packages/domains-api/domains-api.log` to see everything is working as expected.
+Before you fire up / restart your server you will need to run the script as sudo, so that the the appropriate permissions can be set to enable the web server user (www-data) to create/update the log and user configuration files (in `<venv path>/site-packages/domains-api/`). You might need to specify the virtual environment's python path or sudo will use the root-owned one (`sudo venv/bin/python -m domains_api`). You will then be asked to input your credentials as above. After this process is complete, you can restart your web server. Check `cat /var/log/apache2/error.log` and `<venv path>/site-packages/domains-api/domains-api.log` to see everything is working as expected.
 
-An alternative method (if you perhaps have already initialized the module and created the files) is to do the following on the appropriate directory/files (as above):
+An alternative method is to do the following on the appropriate directory/files (as above):
 
 ```
 sudo chown -R :www-data /path/to/venv/lib/python3.8/site-packages/domains_api/.domains

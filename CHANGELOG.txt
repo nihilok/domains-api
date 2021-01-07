@@ -24,7 +24,7 @@ https://codereview.stackexchange.com/questions/254272/dynamic-dns-ip-checker-cha
 ---------------------
 - Added email outbox for offline messages
 
-0.1.4.3 (07/01/2020)
+0.1.4.3 - .1.4.4 (07/01/2020)
 ---------------------
 - Refactored all file/log handling methods into file_handlers.FileHandlers
 - Fixed permissions issues (better than before) - run package with sudo the first time to initialize files.
