@@ -2,54 +2,24 @@
 import os
 import sys
 import getopt
-import logging
-import pickle
 import base64
 import smtplib
 from email.errors import MessageError
 from email.message import EmailMessage
 from getpass import getpass
 from itertools import cycle
-from pathlib import Path
 
 from requests import get, post
 from requests.exceptions import ConnectionError as ReqConError
 
-
-PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-
-def file_handling(path=PACKAGE_DIR):
-    if os.name == "nt":
-        log_file = Path(os.getenv('LOCALAPPDATA')) / '.domains-api.log'
-        user_pickle = Path(os.getenv('LOCALAPPDATA')) / '.domains.user'
-
-    else:
-        log_file = Path(path) / 'domains-api.log'
-        user_pickle = Path(path) / '.domains.user'
-    return log_file, user_pickle
+from file_handlers import FileHandlers
 
 
-LOG_FILE, USER_PICKLE = file_handling()
 
-
-def initialize_logger(log_file):
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
-    fh = logging.FileHandler(log_file)
-    sh = logging.StreamHandler(sys.stdout)
-    formatter = logging.Formatter('[%(levelname)s]|%(asctime)s|%(message)s',
-                                  datefmt='%d %b %Y %H:%M:%S')
-    sh_formatter = logging.Formatter('[%(levelname)s]|[%(name)s]|%(asctime)s| %(message)s',
-                                     datefmt='%Y-%m-%d %H:%M:%S')
-    fh.setFormatter(formatter)
-    sh.setFormatter(sh_formatter)
-    logger.addHandler(sh)
-    logger.addHandler(fh)
-    return logger
-
-
-logger = initialize_logger(LOG_FILE)
+def get_ip_only():
+    """Gets current external IP from ipify.org"""
+    current_ip = get('https://api.ipify.org').text
+    return current_ip
 
 
 class User:
@@ -58,13 +28,13 @@ class User:
 
     def __init__(self):
 
+
         """Create user instance and save it for future changes to API and for email notifications."""
 
         self.domain, self.dns_username, self.dns_password, self.req_url = self.set_credentials()
         self.notifications, self.gmail_address, self.gmail_password = self.set_email()
         self.outbox = []
-        self.save_user()
-        logger.info('New user created. (See `python3 ipchecker.py --help` for help changing/removing the user)')
+
 
     def set_credentials(self):
 
@@ -112,33 +82,11 @@ class User:
                 server.login(self.gmail_address, base64.b64decode(self.gmail_password).decode('utf-8'))
                 server.send_message(msg)
                 server.close()
+                return True
             except (MessageError, ConnectionError) as e:
                 log_msg = 'Email notification not sent: %s' % e
-                logger.warning(log_msg)
                 self.outbox.append(msg)
-
-    def save_user(self):
-
-        """Pickle (serialize) user instance."""
-
-        with open(os.path.abspath(USER_PICKLE), 'wb') as pickle_file:
-            pickle.dump(self, pickle_file)
-
-    @staticmethod
-    def load_user(pickle_file=os.path.abspath(USER_PICKLE)):
-
-        """Unpickle (deserialize) user instance."""
-
-        with open(pickle_file, 'rb') as pickle_file:
-            return pickle.load(pickle_file)
-
-    @staticmethod
-    def delete_user():
-
-        """Delete pickle file (serialized user instance)."""
-
-        if input('Are you sure? (Y/n): ').lower() != 'n':
-            os.remove(USER_PICKLE)
+                return False
 
 
 class IPChanger:
@@ -158,13 +106,13 @@ class IPChanger:
         check previous IP address against current external IP, and change via the API if different."""
 
         # Load old user, or create new one:
-        if os.path.isfile(USER_PICKLE):
-            self.user = User.load_user()
+        self.fh = FileHandlers()
+        if os.path.isfile(self.fh.user_file):
+            self.user = self.fh.load_user(self.fh.user_file)
+            self.fh.log('User loaded from pickle', 'debug')
         else:
             self.user = User()
-        setattr(self.user, 'outbox', [])
-        self.user.save_user()
-        self.current_ip = self.get_ip()
+        self.current_ip = self.get_set_ip()
 
         # Parse command line options:
         try:
@@ -180,33 +128,34 @@ python/python3 -m domains_api --help''')
         try:
             if self.user.previous_ip == self.current_ip:
                 log_msg = 'Current IP: %s (no change)' % self.user.previous_ip
-                logger.info(log_msg)
             else:
                 self.user.previous_ip = self.current_ip
                 self.domains_api_call()
                 log_msg = 'Newly recorded IP: %s' % self.user.previous_ip
-                logger.info(log_msg)
-                self.user.save_user()
+                self.fh.save_user(self.user)
+            self.fh.log(log_msg, 'info')
         except AttributeError:
             setattr(self.user, 'previous_ip', self.current_ip)
-            self.user.save_user()
+            self.fh.save_user(self.user)
             self.domains_api_call()
+        finally:
+            if self.fh.op_sys == 'pos' and os.geteuid() == 0:
+                self.fh.set_permissions(self.fh.user_file)
 
         # Send outbox emails:
         if self.user.outbox:
             for msg in self.user.outbox:
                 self.user.send_notification(outbox_msg=msg)
-                logger.info('Outbox message sent')
+                self.fh.log('Outbox message sent', 'info')
 
-    def get_ip(self):
+    def get_set_ip(self):
 
-        """Gets current external IP from ipify.org"""
+        """Gets current external IP from ipify.org and sets self.current_ip"""
 
         try:
-            current_ip = get('https://api.ipify.org').text
-            return current_ip
+            return get_ip_only()
         except ReqConError as e:
-            logger.warning('Connection Error. Could not reach ipify.org')
+            self.fh.log('Connection Error. Could not reach api.ipify.org', 'warning')
             self.user.send_notification(ip=self.current_ip, msg_type='error', error=e)
             sys.exit(2)
 
@@ -216,9 +165,9 @@ python/python3 -m domains_api --help''')
 
         try:
             req = post(f'{self.user.req_url}&myip={self.current_ip}')
-            response = req.content.decode('utf-8')
+            response = req.text
             log_msg = 'Google Domains API response: %s' % response
-            logger.info(log_msg)
+            self.fh.log(log_msg, 'info')
 
             # Successful request:
             _response = response.split(' ')
@@ -231,24 +180,24 @@ python/python3 -m domains_api --help''')
                       " or does not have Dynamic DNS enabled. The script will not be " \
                       "able to run until you fix this. See https://support.google.com/domains/answer/6147083?hl=en-CA" \
                       " for API documentation"
-                logger.warning(msg)
+                self.fh.log(msg, 'warning')
                 if input("Recreate the API profile? (Y/n):").lower() != 'n':
-                    self.user.set_credentials(update=True)
+                    self.user.set_credentials()
                     self.domains_api_call()
                 else:
                     self.user.send_notification(self.current_ip, 'error', msg)
             else:
-                logger.warning("Could not authenticate with these credentials")
+                self.fh.log("Could not authenticate with these credentials", 'warning')
                 if input("Recreate the API profile? (Y/n):").lower() != 'n':
                     self.user.set_credentials(update=True)
                     self.domains_api_call()
                 else:
-                    self.user.delete_user()
-                    logger.warning('API authentication failed, user profile deleted')
+                    self.fh.delete_user()
+                    self.fh.log('API authentication failed, user profile deleted', 'warning')
                     sys.exit(2)
         except ReqConError as e:  # Local connection related errors
             log_msg = 'Connection Error: %s' % e
-            logger.warning(log_msg)
+            self.fh.log(log_msg, 'warning')
             self.user.send_notification(self.current_ip, 'error', e)
 
     def arg_parse(self, opts):
@@ -259,7 +208,7 @@ python/python3 -m domains_api --help''')
             if opt in {'-i', '--ip'}:
                 print('''
             [Domains API] Current external IP: %s
-                ''' % self.get_ip())
+                ''' % get_ip_only())
             elif opt in {'-h', '--help'}:
                 print(
                     """
@@ -276,26 +225,25 @@ python/python3 -m domains_api --help''')
         python -m domains_api -c --credentials   || -change API credentials
         python -m domains_api -e --email         || -email set up wizard > use to delete email credentials (choose 'n')
         python -m domains_api -n --notifications || -toggle email notification settings > will not delete email address
+        python -m domains_api -u user.file       || (or "--user_load path/to/user.file") -load user from pickle file
         python -m domains_api -d --delete_user   || -delete current user profile
-        python -m domains_api -u user.file       || (or "--user_load path/to/user.file") -load user from pickle file**
-                                                 || **this will overwrite any current user profile without warning!
-                                                 || **Backup "./.domains.user" file to store multiple profiles.
+                                                 || User files are stored in /site-packages/domains_api/*.user
     """
                 )
             elif opt in {'-c', '--credentials'}:
                 self.user.set_credentials(update=True)
                 self.domains_api_call()
-                logger.info('***API credentials changed***')
-                self.user.save_user()
+                self.fh.log('***API credentials changed***', 'info')
+                self.fh.save_user(self.user)
             elif opt in {'-d', '--delete'}:
-                User.delete_user()
-                logger.info('***User deleted***')
+                self.fh.delete_user()
+                self.fh.log('***User deleted***', 'info')
                 print('>>>Run the script without options to create a new user, or '
                       '"python3 -m domains_api -u path/to/pickle" to load one from file')
             elif opt in {'-e', '--email'}:
                 self.user.set_email()
-                self.user.save_user()
-                logger.info('***Notification settings changed***')
+                self.fh.save_user(self.user)
+                self.fh.log('***Notification settings changed***', 'info')
             elif opt in {'-n', '--notifications'}:
                 n_options = {'Y': '[all changes]', 'e': '[errors only]', 'n': '[none]'}
                 options_iter = cycle(n_options.keys())
@@ -303,20 +251,20 @@ python/python3 -m domains_api --help''')
                     if self.user.notifications == option:
                         break
                 self.user.notifications = next(options_iter)
-                self.user.save_user()
+                self.fh.save_user(self.user)
                 log_msg = '***Notification settings changed to %s***' % n_options[self.user.notifications]
-                logger.info(log_msg)
+                self.fh.log(log_msg, 'info')
                 if self.user.notifications in ('Y', 'e') and not self.user.gmail_address:
-                    logger.info('No email user set, running email set up wizard...')
+                    self.fh.log('No email user set, running email set up wizard...', 'info')
                     self.user.set_email()
-                    self.user.save_user()
+                    self.fh.save_user(self.user)
             elif opt in {'-u', '--user_load'}:
                 try:
-                    self.user = User.load_user(pickle_file=arg)
-                    self.user.save_user()
-                    logger.info('***User loaded***')
+                    self.user = self.fh.load_user(self.fh.user_file)
+                    self.fh.save_user(self.user)
+                    self.fh.log('***User loaded***', 'info')
                 except FileNotFoundError as e:
-                    logger.warning(e)
+                    self.fh.log(e, 'warning')
                     sys.exit(2)
             sys.exit()
 
