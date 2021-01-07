@@ -1,16 +1,17 @@
 import logging
 import pickle
+import subprocess
 import sys
 import os
 from pathlib import Path
 
 
 class FileHandlers:
-    def __init__(self, domain='', path=os.path.abspath('~/.domains')):
+    def __init__(self, path='.domains'):
         self.log_level = self.set_log_level()
-        self.log_path, self.user_path, self.op_sys = self.file_handling(path)
-        self.user_file = os.path.abspath(self.user_path / f'{domain}.user')
-        self.log_file = os.path.abspath(self.log_path / f'{domain}.log')
+        self.path, self.op_sys = self.file_handling(path)
+        self.user_file = os.path.abspath(self.path / f'{path}.user')
+        self.log_file = os.path.abspath(self.path / f'{path}.log')
         if not os.path.exists(self.log_file) or os.path.exists(self.user_file):
             if self.op_sys == 'nt':
                 self.make_directories()
@@ -25,24 +26,20 @@ class FileHandlers:
     @staticmethod
     def file_handling(path):
         if os.name == 'nt':
-            log_path = Path(os.getenv('LOCALAPPDATA')) / path
-            user_path = Path(os.getenv('LOCALAPPDATA')) / path
+            path = Path(os.getenv('LOCALAPPDATA')) / path
             op_sys = 'nt'
         else:
-            log_path = Path(path)
-            user_path = Path(path)
+            path = Path(path)
             op_sys = 'pos'
-        return log_path, user_path, op_sys
+        return path, op_sys
 
     def make_directories(self):
-        os.makedirs(self.log_path, exist_ok=True)
-        os.makedirs(self.user_path, exist_ok=True)
+        os.makedirs(self.path, exist_ok=True)
 
     def set_permissions(self, gid=33):
-        paths = [self.log_path, self.user_path]
-        for path in paths:
-            os.chown(path, int(os.environ['SUDO_GID']), gid)
-            os.chmod(path, 0o664)
+        os.chown(self.path, int(os.environ['SUDO_GID']), gid)
+        os.chmod(self.path, 0o665)
+        subprocess.check_call(['chmod', 'g+s', self.path])
 
     def initialize_loggers(self):
         sys_log = logging.getLogger('domains_api')
@@ -89,7 +86,7 @@ class FileHandlers:
         self.log('New user created. (See `python -m domains_api --help` for help changing/removing the user)', 'info')
 
     @staticmethod
-    def load_user(self, user_file):
+    def load_user(user_file):
 
         """Unpickle (deserialize) user instance."""
 
@@ -111,6 +108,5 @@ class FileHandlers:
 
 
 if __name__ == '__main__':
-    fhs = FileHandlers('mjfullstack.com', 'test_dir')
-    fhs.set_log_level('warning')
+    fhs = FileHandlers()
     fhs.log('Testing', 'info')

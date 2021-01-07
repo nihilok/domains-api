@@ -63,7 +63,7 @@ class User:
         else:
             return 'n', None, None
 
-    def send_notification(self, ip=None, msg_type='success', error=None, outbox_msg=None, logger=logging):
+    def send_notification(self, ip=None, msg_type='success', error=None, outbox_msg=None):
 
         """Notify user via email if IP change is made successfully or if API call fails."""
 
@@ -85,10 +85,11 @@ class User:
                 server.login(self.gmail_address, base64.b64decode(self.gmail_password).decode('utf-8'))
                 server.send_message(msg)
                 server.close()
+                return True
             except (MessageError, ConnectionError) as e:
                 log_msg = 'Email notification not sent: %s' % e
-                logger.warning(log_msg)
                 self.outbox.append(msg)
+                return False
 
 
 class IPChanger:
@@ -109,13 +110,11 @@ class IPChanger:
 
         # Load old user, or create new one:
         self.fh = FileHandlers()
-        if os.path.isfile(self.fh.user_path):
-            self.user = self.fh.load_user()
-            self.fh.log('User loaded' 'debug')
+        if os.path.isfile(self.fh.user_file):
+            self.user = self.fh.load_user(self.fh.user_file)
+            self.fh.log('User loaded from pickle' 'debug')
         else:
             self.user = User()
-        setattr(self.user, 'outbox', [])
-        self.user.save_user()
         self.current_ip = self.get_set_ip()
 
         # Parse command line options:
@@ -132,23 +131,22 @@ python/python3 -m domains_api --help''')
         try:
             if self.user.previous_ip == self.current_ip:
                 log_msg = 'Current IP: %s (no change)' % self.user.previous_ip
-                logger.info(log_msg)
             else:
                 self.user.previous_ip = self.current_ip
                 self.domains_api_call()
                 log_msg = 'Newly recorded IP: %s' % self.user.previous_ip
-                logger.info(log_msg)
-                self.user.save_user()
+                self.fh.save_user(self.user)
+            self.fh.log(log_msg, 'info')
         except AttributeError:
             setattr(self.user, 'previous_ip', self.current_ip)
-            self.user.save_user()
+            self.fh.save_user(self.user)
             self.domains_api_call()
 
         # Send outbox emails:
         if self.user.outbox:
             for msg in self.user.outbox:
                 self.user.send_notification(outbox_msg=msg)
-                logger.info('Outbox message sent')
+                self.fh.log('Outbox message sent', 'info')
 
     def get_set_ip(self):
 
@@ -157,7 +155,7 @@ python/python3 -m domains_api --help''')
         try:
             return get_ip_only()
         except ReqConError as e:
-            logger.warning('Connection Error. Could not reach ipify.org')
+            self.fh.log('Connection Error. Could not reach api.ipify.org', 'warning')
             self.user.send_notification(ip=self.current_ip, msg_type='error', error=e)
             sys.exit(2)
 
@@ -169,7 +167,7 @@ python/python3 -m domains_api --help''')
             req = post(f'{self.user.req_url}&myip={self.current_ip}')
             response = req.text
             log_msg = 'Google Domains API response: %s' % response
-            logger.info(log_msg)
+            self.fh.log(log_msg, 'info')
 
             # Successful request:
             _response = response.split(' ')
@@ -182,24 +180,24 @@ python/python3 -m domains_api --help''')
                       " or does not have Dynamic DNS enabled. The script will not be " \
                       "able to run until you fix this. See https://support.google.com/domains/answer/6147083?hl=en-CA" \
                       " for API documentation"
-                logger.warning(msg)
+                self.fh.log(msg, 'warning')
                 if input("Recreate the API profile? (Y/n):").lower() != 'n':
-                    self.user.set_credentials(update=True)
+                    self.user.set_credentials()
                     self.domains_api_call()
                 else:
                     self.user.send_notification(self.current_ip, 'error', msg)
             else:
-                logger.warning("Could not authenticate with these credentials")
+                self.fh.log("Could not authenticate with these credentials", 'warning')
                 if input("Recreate the API profile? (Y/n):").lower() != 'n':
                     self.user.set_credentials(update=True)
                     self.domains_api_call()
                 else:
-                    self.user.delete_user()
-                    logger.warning('API authentication failed, user profile deleted')
+                    self.fh.delete_user()
+                    self.fh.log('API authentication failed, user profile deleted', 'warning')
                     sys.exit(2)
         except ReqConError as e:  # Local connection related errors
             log_msg = 'Connection Error: %s' % e
-            logger.warning(log_msg)
+            self.fh.log(log_msg, 'warning')
             self.user.send_notification(self.current_ip, 'error', e)
 
     def arg_parse(self, opts):
@@ -210,7 +208,7 @@ python/python3 -m domains_api --help''')
             if opt in {'-i', '--ip'}:
                 print('''
             [Domains API] Current external IP: %s
-                ''' % self.get_ip())
+                ''' % get_ip_only())
             elif opt in {'-h', '--help'}:
                 print(
                     """
@@ -235,17 +233,17 @@ python/python3 -m domains_api --help''')
             elif opt in {'-c', '--credentials'}:
                 self.user.set_credentials(update=True)
                 self.domains_api_call()
-                logger.info('***API credentials changed***')
-                self.user.save_user()
+                self.fh.log('***API credentials changed***', 'info')
+                self.fh.save_user(self.user)
             elif opt in {'-d', '--delete'}:
-                User.delete_user()
-                logger.info('***User deleted***')
+                self.fh.delete_user()
+                self.fh.log('***User deleted***', 'info')
                 print('>>>Run the script without options to create a new user, or '
                       '"python3 -m domains_api -u path/to/pickle" to load one from file')
             elif opt in {'-e', '--email'}:
                 self.user.set_email()
-                self.user.save_user()
-                logger.info('***Notification settings changed***')
+                self.fh.save_user(self.user)
+                self.fh.log('***Notification settings changed***', 'info')
             elif opt in {'-n', '--notifications'}:
                 n_options = {'Y': '[all changes]', 'e': '[errors only]', 'n': '[none]'}
                 options_iter = cycle(n_options.keys())
@@ -253,20 +251,20 @@ python/python3 -m domains_api --help''')
                     if self.user.notifications == option:
                         break
                 self.user.notifications = next(options_iter)
-                self.user.save_user()
+                self.fh.save_user(self.user)
                 log_msg = '***Notification settings changed to %s***' % n_options[self.user.notifications]
-                logger.info(log_msg)
+                self.fh.log(log_msg, 'info')
                 if self.user.notifications in ('Y', 'e') and not self.user.gmail_address:
-                    logger.info('No email user set, running email set up wizard...')
+                    self.fh.log('No email user set, running email set up wizard...', 'info')
                     self.user.set_email()
-                    self.user.save_user()
+                    self.fh.save_user(self.user)
             elif opt in {'-u', '--user_load'}:
                 try:
-                    self.user = User.load_user(pickle_file=arg)
-                    self.user.save_user()
-                    logger.info('***User loaded***')
+                    self.user = self.fh.load_user(self.fh.user_file)
+                    self.fh.save_user(self.user)
+                    self.fh.log('***User loaded***', 'info')
                 except FileNotFoundError as e:
-                    logger.warning(e)
+                    self.fh.log(e, 'warning')
                     sys.exit(2)
             sys.exit()
 
