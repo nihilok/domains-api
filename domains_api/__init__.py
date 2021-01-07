@@ -3,7 +3,6 @@ import os
 import sys
 import getopt
 import logging
-import pickle
 import base64
 import smtplib
 from email.errors import MessageError
