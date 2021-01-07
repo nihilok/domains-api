@@ -17,11 +17,14 @@ class FileHandlers:
                 self.make_directories()
             elif os.geteuid() == 0:
                 self.make_directories()
-                self.set_permissions()
+                self.set_permissions(self.path)
             else:
                 print('run with sudo first time')
                 sys.exit()
         self.own_log, self.sys_log = self.initialize_loggers()
+        if self.op_sys == 'pos' and os.geteuid() == 0:
+            self.set_permissions(self.log_file)
+            self.set_permissions(self.user_file)
 
     @staticmethod
     def file_handling(path):
@@ -36,10 +39,10 @@ class FileHandlers:
     def make_directories(self):
         os.makedirs(self.path, exist_ok=True)
 
-    def set_permissions(self, gid=33):
-        os.chown(self.path, int(os.environ['SUDO_GID']), gid)
-        os.chmod(self.path, 0o665)
-        subprocess.check_call(['chmod', 'g+s', self.path])
+    def set_permissions(path, gid=33):
+        os.chown(path, int(os.environ['SUDO_GID']), gid)
+        os.chmod(path, 0o665)
+        subprocess.check_call(['chmod', 'g+s', path])
 
     def initialize_loggers(self):
         sys_log = logging.getLogger('domains_api')
