@@ -1,0 +1,116 @@
+import logging
+import pickle
+import sys
+import os
+from pathlib import Path
+
+
+class FileHandlers:
+    def __init__(self, domain='', path=os.path.abspath('~/.domains')):
+        self.log_level = self.set_log_level()
+        self.log_path, self.user_path, self.op_sys = self.file_handling(path)
+        self.user_file = os.path.abspath(self.user_path / f'{domain}.user')
+        self.log_file = os.path.abspath(self.log_path / f'{domain}.log')
+        if not os.path.exists(self.log_file) or os.path.exists(self.user_file):
+            if self.op_sys == 'nt':
+                self.make_directories()
+            elif os.geteuid() == 0:
+                self.make_directories()
+                self.set_permissions()
+            else:
+                print('run with sudo first time')
+                sys.exit()
+        self.own_log, self.sys_log = self.initialize_loggers()
+
+    @staticmethod
+    def file_handling(path):
+        if os.name == 'nt':
+            log_path = Path(os.getenv('LOCALAPPDATA')) / path
+            user_path = Path(os.getenv('LOCALAPPDATA')) / path
+            op_sys = 'nt'
+        else:
+            log_path = Path(path)
+            user_path = Path(path)
+            op_sys = 'pos'
+        return log_path, user_path, op_sys
+
+    def make_directories(self):
+        os.makedirs(self.log_path, exist_ok=True)
+        os.makedirs(self.user_path, exist_ok=True)
+
+    def set_permissions(self, gid=33):
+        paths = [self.log_path, self.user_path]
+        for path in paths:
+            os.chown(path, int(os.environ['SUDO_GID']), gid)
+            os.chmod(path, 0o664)
+
+    def initialize_loggers(self):
+        sys_log = logging.getLogger('domains_api')
+        own_log = logging.getLogger(__name__)
+        if self.log_level == 'debug':
+            sys_log.setLevel(logging.DEBUG)
+        elif self.log_level == 'warning':
+            sys_log.setLevel(logging.WARNING)
+        else:
+            sys_log.setLevel(logging.INFO)
+        own_log.setLevel(logging.WARNING)
+        fh = logging.FileHandler(self.log_file)
+        sh = logging.StreamHandler(sys.stdout)
+        formatter = logging.Formatter('[%(levelname)s]|%(asctime)s|%(message)s',
+                                      datefmt='%d %b %Y %H:%M:%S')
+        sh_formatter = logging.Formatter('[%(levelname)s]|[%(name)s]|%(asctime)s| %(message)s',
+                                         datefmt='%Y-%m-%d %H:%M:%S')
+        fh.setFormatter(formatter)
+        sh.setFormatter(sh_formatter)
+        sys_log.addHandler(sh)
+        own_log.addHandler(fh)
+        sys_log.debug('Loggers initialized')
+        return own_log, sys_log
+
+    def log(self, msg, level='info'):
+        if level == 'info':
+            self.sys_log.info(msg)
+        elif level == 'debug':
+            self.sys_log.debug(msg)
+        elif level == 'warning':
+            self.sys_log.warning(msg)
+            self.own_log.warning(msg)
+
+    def set_log_level(self, level='info'):
+        self.log_level = level
+        return self.log_level
+
+    def save_user(self, user):
+
+        """Pickle (serialize) user instance."""
+
+        with open(self.user_file, 'wb') as pickle_file:
+            pickle.dump(user, pickle_file)
+        self.log('New user created. (See `python -m domains_api --help` for help changing/removing the user)', 'info')
+
+    @staticmethod
+    def load_user(self, user_file):
+
+        """Unpickle (deserialize) user instance."""
+
+        with open(user_file, 'rb') as pickle_file:
+            return pickle.load(pickle_file)
+
+    def delete_user(self):
+
+        """Delete pickle file (serialized user instance)."""
+
+        if input('Are you sure? (Y/n): ').lower() != 'n':
+            os.remove(self.user_file)
+        self.log('User file deleted', 'info')
+
+    def clear_logs(self):
+        with open(self.log_file, 'r') as f, open(self.log_file, 'w') as w:
+            tail = f.readlines()[:-5]
+            w.writelines(tail)
+
+
+if __name__ == '__main__':
+    fhs = FileHandlers('mjfullstack.com', 'test_dir')
+    fhs.set_log_level('warning')
+    fhs.log('Testing', 'info')
