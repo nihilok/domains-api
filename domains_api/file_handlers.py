@@ -57,7 +57,7 @@ class FileHandlers:
             sys_log.setLevel(logging.WARNING)
         else:
             sys_log.setLevel(logging.INFO)
-        own_log.setLevel(logging.WARNING)
+        own_log.setLevel(logging.INFO)
         fh = logging.FileHandler(self.log_file)
         sh = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter('[%(levelname)s]|%(asctime)s|%(message)s',
