@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 import os
-import pickle
 import sys
 import getopt
 import base64
