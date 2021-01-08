@@ -7,11 +7,11 @@ from pathlib import Path
 
 
 class FileHandlers:
-    def __init__(self, path='.domains'):
+    def __init__(self, path='/var/www/domains-api'):
         self.log_level = self.set_log_level()
         self.path, self.op_sys = self.file_handling(path)
-        self.user_file = os.path.abspath(self.path / f'{path}.user')
-        self.log_file = os.path.abspath(self.path / f'{path}.log')
+        self.user_file = os.path.abspath(self.path / 'domains.user')
+        self.log_file = os.path.abspath(self.path / 'domains.log')
         if not os.path.exists(self.log_file) or not os.path.exists(self.user_file):
             if self.op_sys == 'nt':
                 self.make_directories()

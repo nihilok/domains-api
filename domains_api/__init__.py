@@ -1,5 +1,7 @@
 #!/usr/bin/python3
+import logging
 import os
+import pickle
 import sys
 import getopt
 import base64
@@ -8,6 +10,7 @@ from email.errors import MessageError
 from email.message import EmailMessage
 from getpass import getpass
 from itertools import cycle
+from pathlib import Path
 
 from requests import get, post
 from requests.exceptions import ConnectionError as ReqConError
@@ -19,6 +22,115 @@ def get_ip_only():
     """Gets current external IP from ipify.org"""
     current_ip = get('https://api.ipify.org').text
     return current_ip
+
+
+class FileHandlers:
+    def __init__(self, path='/var/www/domains-api'):
+        self.log_level = self.set_log_level()
+        self.path, self.op_sys = self.file_handling(path)
+        self.user_file = os.path.abspath(self.path / 'domains.user')
+        self.log_file = os.path.abspath(self.path / 'domains.log')
+        if not os.path.exists(self.log_file) or not os.path.exists(self.user_file):
+            if self.op_sys == 'nt':
+                self.make_directories()
+            elif os.geteuid() == 0:
+                self.make_directories()
+                self.set_permissions(self.path)
+            else:
+                print('run with sudo first time')
+                sys.exit()
+        self.own_log, self.sys_log = self.initialize_loggers()
+        if self.op_sys == 'pos' and os.geteuid() == 0:
+            self.set_permissions(self.log_file)
+
+    @staticmethod
+    def file_handling(path):
+        if os.name == 'nt':
+            path = Path(os.getenv('LOCALAPPDATA')) / path
+            op_sys = 'nt'
+        else:
+            path = Path(path)
+            op_sys = 'pos'
+        return path, op_sys
+
+    def make_directories(self):
+        os.makedirs(self.path, exist_ok=True)
+
+    @staticmethod
+    def set_permissions(path, gid=33):
+        os.chown(path, int(os.environ['SUDO_GID']), gid)
+        print(f'owner set on {path}')
+        if os.path.isdir(path):
+            os.chmod(path, 0o770)
+        elif os.path.isfile(path):
+            os.chmod(path, 0o665)
+
+        # subprocess.check_call(['chmod', 'g+s', path])
+
+    def initialize_loggers(self):
+        sys_log = logging.getLogger('domains_api')
+        own_log = logging.getLogger(__name__)
+        if self.log_level == 'debug':
+            sys_log.setLevel(logging.DEBUG)
+        elif self.log_level == 'warning':
+            sys_log.setLevel(logging.WARNING)
+        else:
+            sys_log.setLevel(logging.INFO)
+        own_log.setLevel(logging.WARNING)
+        fh = logging.FileHandler(self.log_file)
+        sh = logging.StreamHandler(sys.stdout)
+        formatter = logging.Formatter('[%(levelname)s]|%(asctime)s|%(message)s',
+                                      datefmt='%d %b %Y %H:%M:%S')
+        sh_formatter = logging.Formatter('[%(levelname)s]|[%(name)s]|%(asctime)s| %(message)s',
+                                         datefmt='%Y-%m-%d %H:%M:%S')
+        fh.setFormatter(formatter)
+        sh.setFormatter(sh_formatter)
+        sys_log.addHandler(sh)
+        own_log.addHandler(fh)
+        sys_log.debug('Loggers initialized')
+        return own_log, sys_log
+
+    def log(self, msg, level='info'):
+        if level == 'info':
+            self.sys_log.info(msg)
+        elif level == 'debug':
+            self.sys_log.debug(msg)
+        elif level == 'warning':
+            self.sys_log.warning(msg)
+            self.own_log.warning(msg)
+
+    def set_log_level(self, level='info'):
+        self.log_level = level
+        return self.log_level
+
+    def save_user(self, user):
+
+        """Pickle (serialize) user instance."""
+
+        with open(self.user_file, 'wb') as pickle_file:
+            pickle.dump(user, pickle_file)
+        self.log('New user created. (See `python -m domains_api --help` for help changing/removing the user)', 'info')
+
+    @staticmethod
+    def load_user(user_file):
+
+        """Unpickle (deserialize) user instance."""
+
+        with open(user_file, 'rb') as pickle_file:
+            return pickle.load(pickle_file)
+
+    def delete_user(self):
+
+        """Delete pickle file (serialized user instance)."""
+
+        if input('Are you sure? (Y/n): ').lower() != 'n':
+            os.remove(self.user_file)
+        self.log('User file deleted', 'info')
+
+    def clear_logs(self):
+        with open(self.log_file, 'r') as f, open(self.log_file, 'w') as w:
+            tail = f.readlines()[:-5]
+            w.writelines(tail)
 
 
 class User:
@@ -188,7 +300,7 @@ python/python3 -m domains_api --help''')
             else:
                 self.fh.log("Could not authenticate with these credentials", 'warning')
                 if input("Recreate the API profile? (Y/n):").lower() != 'n':
-                    self.user.set_credentials(update=True)
+                    self.user.set_credentials()
                     self.domains_api_call()
                 else:
                     self.fh.delete_user()
@@ -253,7 +365,7 @@ python/python3 -m domains_api --help''')
                 self.fh.save_user(self.user)
                 log_msg = '***Notification settings changed to %s***' % n_options[self.user.notifications]
                 self.fh.log(log_msg, 'info')
-                if self.user.notifications in ('Y', 'e') and not self.user.gmail_address:
+                if self.user.notifications in {'Y', 'e'} and not self.user.gmail_address:
                     self.fh.log('No email user set, running email set up wizard...', 'info')
                     self.user.set_email()
                     self.fh.save_user(self.user)
