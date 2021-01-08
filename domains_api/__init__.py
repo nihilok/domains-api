@@ -9,7 +9,6 @@ from email.errors import MessageError
 from email.message import EmailMessage
 from getpass import getpass
 from itertools import cycle
-from pathlib import Path
 
 from requests import get, post
 from requests.exceptions import ConnectionError as ReqConError
