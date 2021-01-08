@@ -15,6 +15,8 @@ from pathlib import Path
 from requests import get, post
 from requests.exceptions import ConnectionError as ReqConError
 
+from domains_api.file_handlers import FileHandlers
+
 
 def get_ip_only():
     """Gets current external IP from ipify.org"""
