@@ -152,9 +152,9 @@ python/python3 -m domains_api --help''')
 
         try:
             return get_ip_only()
-        except ReqConError as e:
+        except (ReqConError, ConnectionError) as e:
             self.fh.log('Connection Error. Could not reach api.ipify.org', 'warning')
-            self.user.send_notification(ip=self.current_ip, msg_type='error', error=e)
+            self.user.send_notification(ip=None, msg_type='error', error=e)
             sys.exit(2)
 
     def domains_api_call(self):
