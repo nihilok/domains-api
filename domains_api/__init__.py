@@ -12,7 +12,7 @@ from itertools import cycle
 from requests import get, post
 from requests.exceptions import ConnectionError as ReqConError
 
-from .file_handlers import FileHandlers
+from domains_api.file_handlers import FileHandlers
 
 
 
