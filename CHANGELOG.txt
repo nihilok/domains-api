@@ -31,8 +31,9 @@ https://codereview.stackexchange.com/questions/254272/dynamic-dns-ip-checker-cha
 - Changed posix directory for logs and user files to `domains_api/.domains/`
 - `save_user`/`load_user` and `delete_user` methods are now part of the FileHandlers class.
 
-0.1.4.5 - .1.4.7 (08/01/2020)
+0.1.4.5 - .1.4.8 (08/01/2020)
 --------------------
 - Fixed relative import
 - Changed directory to `/var/www/domains-api/`
 - Updated readme
+- Fixed duplicate loggers
