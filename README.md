@@ -69,7 +69,7 @@ Other options include:
 
 In your Django virtual environment (recommended):
 
-`pip install domains-api APScheduler==3.6.3`
+`pip install domains-api apscheduler`
 
 Then, in your project you can create a new module called ipChanger in your project's root directory, with an empty `__init__.py` file and an `ip_changer.py` file.
 
