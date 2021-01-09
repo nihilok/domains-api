@@ -20,7 +20,7 @@ class FileHandlers:
                     self.set_permissions(self.path)
                     self.own_log, self.sys_log = self.initialize_loggers()
                     self.set_permissions(self.log_file)
-            except (PermissionError, FileNotFoundError, AttributeError) as e:
+            except (PermissionError, FileNotFoundError, KeyError) as e:
                 print(e)
                 print('Run with sudo first time to set permissions')
                 sys.exit(1)
@@ -42,11 +42,24 @@ class FileHandlers:
 
     @staticmethod
     def set_permissions(path, gid=33):
-        os.chown(path, int(os.environ['SUDO_GID']), gid)
-        if os.path.isdir(path):
-            os.chmod(path, 0o770)
-        elif os.path.isfile(path):
-            os.chmod(path, 0o665)
+        if os.geteuid() == 0:
+            try:
+                os.chown(path, int(os.environ['SUDO_GID']), gid)
+                if os.path.isdir(path):
+                    os.chmod(path, 0o770)
+                elif os.path.isfile(path):
+                    os.chmod(path, 0o665)
+            except KeyError as e:
+                raise e
+        else:
+            try:
+                os.chown(path, int(os.getuid()), gid)
+                if os.path.isdir(path):
+                    os.chmod(path, 0o770)
+                elif os.path.isfile(path):
+                    os.chmod(path, 0o665)
+            except PermissionError as e:
+                raise e
 
     def initialize_loggers(self):
         sys_log = logging.getLogger('domains_api')
