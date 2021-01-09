@@ -90,7 +90,7 @@ class FileHandlers:
 
         with open(self.user_file, 'wb') as pickle_file:
             pickle.dump(user, pickle_file)
-        self.log('New user created. (See `python -m domains_api --help` for help changing/removing the user)', 'info')
+        self.log('User saved.', 'debug')
 
     @staticmethod
     def load_user(user_file):

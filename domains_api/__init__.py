@@ -3,7 +3,6 @@ import sys
 import getopt
 import base64
 import smtplib
-from email.errors import MessageError
 from email.message import EmailMessage
 from getpass import getpass
 from itertools import cycle
@@ -29,13 +28,11 @@ class User:
 
     def __init__(self):
 
-
         """Create user instance and save it for future changes to API and for email notifications."""
 
         self.domain, self.dns_username, self.dns_password, self.req_url = self.set_credentials()
         self.notifications, self.gmail_address, self.gmail_password = self.set_email()
         self.outbox = []
-
 
     def set_credentials(self):
 
@@ -69,14 +66,15 @@ class User:
             msg = EmailMessage()
             msg['From'] = self.gmail_address
             msg['To'] = self.gmail_address
-            if ip and msg_type == 'success' and self.notifications not in ('n', 'e'):
+            if ip and msg_type == 'success' and self.notifications not in {'n', 'e'}:
                 msg.set_content(f'IP for {self.domain} has changed! New IP: {ip}')
-                msg['Subject'] = 'IP CHANGED SUCCESSFULLY!'
-            elif ip and msg_type == 'error' and self.notifications != 'n':
-                msg.set_content(f'IP for {self.domain} has changed but the API call failed ({error})! New IP: {ip}')
-                msg['Subject'] = 'IP CHANGE FAILED!'
-            elif outbox_msg and not ip:
+                msg['Subject'] = 'IP CHANGED!'
+            elif msg_type == 'error' and self.notifications != 'n':
+                msg.set_content(f"Error with {self.domain}'s IPChanger: ({error})!")
+                msg['Subject'] = 'IPCHANGER ERROR!'
+            elif outbox_msg:
                 msg = outbox_msg
+
             try:
                 server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
                 server.ehlo()
@@ -84,10 +82,12 @@ class User:
                 server.send_message(msg)
                 server.close()
                 return True
-            except (MessageError, ConnectionError) as e:
+            except Exception as e:
                 log_msg = 'Email notification not sent: %s' % e
+                fh.log(log_msg, 'warning')
                 self.outbox.append(msg)
-                return False
+                fh.save_user(self)
+                sys.exit(2)
 
 
 class IPChanger:
@@ -112,6 +112,7 @@ class IPChanger:
             fh.log('User loaded from pickle', 'debug')
         else:
             self.user = User()
+            fh.log('New user created. (See `python -m domains_api --help` for help changing/removing the user)', 'info')
         self.current_ip = self.get_set_ip()
 
         # Parse command line options:
@@ -130,9 +131,9 @@ python/python3 -m domains_api --help''')
                 log_msg = 'Current IP: %s (no change)' % self.user.previous_ip
             else:
                 self.user.previous_ip = self.current_ip
+                fh.save_user(self.user)
                 self.domains_api_call()
                 log_msg = 'Newly recorded IP: %s' % self.user.previous_ip
-                fh.save_user(self.user)
             fh.log(log_msg, 'info')
         except AttributeError:
             setattr(self.user, 'previous_ip', self.current_ip)
@@ -142,22 +143,22 @@ python/python3 -m domains_api --help''')
             if fh.op_sys == 'pos' and os.geteuid() == 0:
                 fh.set_permissions(fh.user_file)
 
-        # Send outbox emails:
-        if self.user.outbox:
-            for msg in self.user.outbox:
-                self.user.send_notification(outbox_msg=msg)
-                fh.log('Outbox message sent', 'info')
+            # Send outbox emails:
+            if self.user.outbox:
+                for i in range(len(self.user.outbox)):
+                    self.user.send_notification(outbox_msg=self.user.outbox.pop(i))
+                    fh.log('Outbox message sent', 'info')
+                fh.save_user(self.user)
 
     def get_set_ip(self):
 
-        """Gets current external IP from ipify.org and sets self.current_ip"""
+        """Gets current external IP from api.ipify.org and sets self.current_ip"""
 
         try:
             return get_ip_only()
         except (ReqConError, ConnectionError) as e:
             fh.log('Connection Error. Could not reach api.ipify.org', 'warning')
-            self.user.send_notification(ip=None, msg_type='error', error=e)
-            sys.exit(2)
+            self.user.send_notification(msg_type='error', error=e)
 
     def domains_api_call(self):
 
@@ -195,10 +196,10 @@ python/python3 -m domains_api --help''')
                     fh.delete_user()
                     fh.log('API authentication failed, user profile deleted', 'warning')
                     sys.exit(2)
-        except ReqConError as e:  # Local connection related errors
+        except (ConnectionError, ReqConError) as e:  # Local connection related errors
             log_msg = 'Connection Error: %s' % e
             fh.log(log_msg, 'warning')
-            self.user.send_notification(self.current_ip, 'error', e)
+            self.user.send_notification(msg_type='error', error=e)
 
     def arg_parse(self, opts):
 
