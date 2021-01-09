@@ -37,3 +37,7 @@ https://codereview.stackexchange.com/questions/254272/dynamic-dns-ip-checker-cha
 - Changed directory to `/var/www/domains-api/`
 - Updated readme
 - Fixed duplicate loggers
+
+0.1.4.9 (09/01/2020)
+--------------------
+- Fixed email outbox (too many emails being sent)
