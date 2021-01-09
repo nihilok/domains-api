@@ -1,5 +1,5 @@
 # Google Domains API Client
-To facilitate running a home web server behind a router without a static IP, this package checks to see if external IP has changed and updates dynamic DNS rules on Google Domains, via the API; also notifies user by email if required.
+To facilitate running a home web server behind a router without a static IP, this package checks to see if your external IP has changed and updates dynamic DNS rules on Google Domains, via the API; also notifies user by email if required.
 
 ### Installation (Python 3.6+):
 `pip install domains-api`
