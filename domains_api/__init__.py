@@ -112,7 +112,8 @@ class IPChanger:
             fh.log('User loaded from pickle', 'debug')
         else:
             self.user = User()
-            fh.log('New user created.\n(See `python -m domains_api --help` for help changing/removing the user)', 'info')
+            fh.log('New user created.\n(See `python -m domains_api --help` for help changing/removing the user)',
+                   'info')
         self.current_ip = self.get_set_ip()
 
         # Parse command line options:
