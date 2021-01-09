@@ -59,20 +59,21 @@ class FileHandlers:
             os.chmod(path, 0o665)
 
     def initialize_loggers(self):
-        sys_log = logging.getLogger('domains_api')
+        sys_log = logging.getLogger('Domains API')
         own_log = logging.getLogger(__name__)
         if self.log_level == 'debug':
-            sys_log.setLevel(logging.DEBUG)
+            level = logging.DEBUG
         elif self.log_level == 'warning':
-            sys_log.setLevel(logging.WARNING)
+            level = logging.WARNING
         else:
-            sys_log.setLevel(logging.INFO)
-        own_log.setLevel(logging.WARNING)
+            level = logging.INFO
+        sys_log.setLevel(level)
+        own_log.setLevel(level)
         fh = logging.FileHandler(self.log_file)
         sh = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter('[%(levelname)s]|%(asctime)s|%(message)s',
-                                      datefmt='%d %b %Y %H:%M:%S')
-        sh_formatter = logging.Formatter('[%(levelname)s]|[%(name)s]|%(asctime)s| %(message)s',
+        formatter = logging.Formatter('[%(levelname)s][%(name)s][%(asctime)s] %(message)s',
+                                      datefmt='%Y-%m-%d %H:%M:%S')
+        sh_formatter = logging.Formatter('[%(name)s][%(levelname)s][%(asctime)s] %(message)s',
                                          datefmt='%Y-%m-%d %H:%M:%S')
         fh.setFormatter(formatter)
         sh.setFormatter(sh_formatter)
@@ -84,8 +85,10 @@ class FileHandlers:
     def log(self, msg, level='info'):
         if level == 'info':
             self.sys_log.info(msg)
+            self.own_log.info(msg)
         elif level == 'debug':
             self.sys_log.debug(msg)
+            self.own_log.debug(msg)
         elif level == 'warning':
             self.sys_log.warning(msg)
             self.own_log.warning(msg)

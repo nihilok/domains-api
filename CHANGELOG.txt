@@ -38,11 +38,11 @@ https://codereview.stackexchange.com/questions/254272/dynamic-dns-ip-checker-cha
 - Updated readme
 - Fixed duplicate loggers
 
-0.1.5.1 (09/01/2020)
+0.1.5.2 (09/01/2020)
 --------------------
 - Fixed email outbox (too many emails being sent)
 - Updated README
 - Consistent exit codes
 - Clear logs after 100 lines (keep the last 10 lines)
 - Try/except for permissions (instead of if/else)
-- Removed need for sudo if user only installation (no Apache2 permissions)
+- Other bugfixes/refactoring
