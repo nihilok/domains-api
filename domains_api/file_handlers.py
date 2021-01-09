@@ -12,17 +12,20 @@ class FileHandlers:
         self.user_file = os.path.abspath(self.path / 'domains.user')
         self.log_file = os.path.abspath(self.path / 'domains.log')
         if not os.path.exists(self.log_file) or not os.path.exists(self.user_file):
-            if self.op_sys == 'nt':
-                self.make_directories()
-            elif os.geteuid() == 0:
-                self.make_directories()
-                self.set_permissions(self.path)
-            else:
-                print('run with sudo first time')
-                sys.exit()
-        self.own_log, self.sys_log = self.initialize_loggers()
-        if self.op_sys == 'pos' and os.geteuid() == 0:
-            self.set_permissions(self.log_file)
+            try:
+                if self.op_sys == 'nt':
+                    self.make_directories()
+                else:
+                    self.make_directories()
+                    self.set_permissions(self.path)
+                    self.own_log, self.sys_log = self.initialize_loggers()
+                    self.set_permissions(self.log_file)
+            except (PermissionError, FileNotFoundError, AttributeError) as e:
+                print(e)
+                print('Run with sudo first time to set permissions')
+                sys.exit(1)
+        else:
+            self.own_log, self.sys_log = self.initialize_loggers()
 
     @staticmethod
     def file_handling(path):
@@ -40,13 +43,10 @@ class FileHandlers:
     @staticmethod
     def set_permissions(path, gid=33):
         os.chown(path, int(os.environ['SUDO_GID']), gid)
-        print(f'owner set on {path}')
         if os.path.isdir(path):
             os.chmod(path, 0o770)
         elif os.path.isfile(path):
             os.chmod(path, 0o665)
-
-        # subprocess.check_call(['chmod', 'g+s', path])
 
     def initialize_loggers(self):
         sys_log = logging.getLogger('domains_api')
@@ -57,7 +57,7 @@ class FileHandlers:
             sys_log.setLevel(logging.WARNING)
         else:
             sys_log.setLevel(logging.INFO)
-        own_log.setLevel(logging.INFO)
+        own_log.setLevel(logging.WARNING)
         fh = logging.FileHandler(self.log_file)
         sh = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter('[%(levelname)s]|%(asctime)s|%(message)s',
@@ -106,12 +106,14 @@ class FileHandlers:
 
         if input('Are you sure? (Y/n): ').lower() != 'n':
             os.remove(self.user_file)
-        self.log('User file deleted', 'info')
 
     def clear_logs(self):
-        with open(self.log_file, 'r') as f, open(self.log_file, 'w') as w:
-            tail = f.readlines()[:-5]
-            w.writelines(tail)
+        with open(self.log_file, 'r') as r:
+            lines = r.readlines()
+            if len(lines) > 100:
+                tail = r.readlines()[-10:]
+                with open(self.log_file, 'w') as w:
+                    w.writelines(tail)
 
 
 if __name__ == '__main__':

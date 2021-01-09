@@ -87,7 +87,7 @@ class User:
                 fh.log(log_msg, 'warning')
                 self.outbox.append(msg)
                 fh.save_user(self)
-                sys.exit(2)
+                sys.exit(1)
 
 
 class IPChanger:
@@ -112,7 +112,7 @@ class IPChanger:
             fh.log('User loaded from pickle', 'debug')
         else:
             self.user = User()
-            fh.log('New user created. (See `python -m domains_api --help` for help changing/removing the user)', 'info')
+            fh.log('New user created.\n(See `python -m domains_api --help` for help changing/removing the user)', 'info')
         self.current_ip = self.get_set_ip()
 
         # Parse command line options:
@@ -149,6 +149,7 @@ python/python3 -m domains_api --help''')
                     self.user.send_notification(outbox_msg=self.user.outbox.pop(i))
                     fh.log('Outbox message sent', 'info')
                 fh.save_user(self.user)
+            fh.clear_logs()
 
     def get_set_ip(self):
 
@@ -195,8 +196,9 @@ python/python3 -m domains_api --help''')
                 else:
                     fh.delete_user()
                     fh.log('API authentication failed, user profile deleted', 'warning')
-                    sys.exit(2)
-        except (ConnectionError, ReqConError) as e:  # Local connection related errors
+                    sys.exit(1)
+        # Local connection related errors
+        except (ConnectionError, ReqConError) as e:
             log_msg = 'Connection Error: %s' % e
             fh.log(log_msg, 'warning')
             self.user.send_notification(msg_type='error', error=e)
@@ -228,23 +230,23 @@ python/python3 -m domains_api --help''')
         python -m domains_api -n --notifications || -toggle email notification settings > will not delete email address
         python -m domains_api -u user.file       || (or "--user_load path/to/user.file") -load user from pickle file
         python -m domains_api -d --delete_user   || -delete current user profile
-                                                 || User files are stored in /site-packages/domains_api/*.user
+                                                 || User files are stored in "/var/www/domains_api/domains.user"
     """
                 )
             elif opt in {'-c', '--credentials'}:
                 self.user.set_credentials(update=True)
                 self.domains_api_call()
-                fh.log('***API credentials changed***', 'info')
                 fh.save_user(self.user)
+                fh.log('API credentials changed', 'info')
             elif opt in {'-d', '--delete'}:
                 fh.delete_user()
-                fh.log('***User deleted***', 'info')
+                fh.log('User deleted', 'info')
                 print('>>>Run the script without options to create a new user, or '
                       '"python3 -m domains_api -u path/to/pickle" to load one from file')
             elif opt in {'-e', '--email'}:
                 self.user.set_email()
                 fh.save_user(self.user)
-                fh.log('***Notification settings changed***', 'info')
+                fh.log('Notification settings changed', 'info')
             elif opt in {'-n', '--notifications'}:
                 n_options = {'Y': '[all changes]', 'e': '[errors only]', 'n': '[none]'}
                 options_iter = cycle(n_options.keys())
@@ -253,7 +255,7 @@ python/python3 -m domains_api --help''')
                         break
                 self.user.notifications = next(options_iter)
                 fh.save_user(self.user)
-                log_msg = '***Notification settings changed to %s***' % n_options[self.user.notifications]
+                log_msg = 'Notification settings changed to %s' % n_options[self.user.notifications]
                 fh.log(log_msg, 'info')
                 if self.user.notifications in {'Y', 'e'} and not self.user.gmail_address:
                     fh.log('No email user set, running email set up wizard...', 'info')
@@ -261,9 +263,9 @@ python/python3 -m domains_api --help''')
                     fh.save_user(self.user)
             elif opt in {'-u', '--user_load'}:
                 try:
-                    self.user = fh.load_user(fh.user_file)
+                    self.user = fh.load_user(arg)
                     fh.save_user(self.user)
-                    fh.log('***User loaded***', 'info')
+                    fh.log('User loaded', 'info')
                 except FileNotFoundError as e:
                     fh.log(e, 'warning')
                     sys.exit(2)
