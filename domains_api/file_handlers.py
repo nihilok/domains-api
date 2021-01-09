@@ -40,26 +40,23 @@ class FileHandlers:
     def make_directories(self):
         os.makedirs(self.path, exist_ok=True)
 
-    @staticmethod
-    def set_permissions(path, gid=33):
-        if os.geteuid() == 0:
-            try:
-                os.chown(path, int(os.environ['SUDO_GID']), gid)
-                if os.path.isdir(path):
-                    os.chmod(path, 0o770)
-                elif os.path.isfile(path):
-                    os.chmod(path, 0o665)
-            except KeyError as e:
-                raise e
-        else:
+    def set_permissions(self, path, gid=33):
+        try:
+            os.chown(path, int(os.environ['SUDO_GID']), gid)
+            self.file_or_dir(path)
+        except KeyError:
             try:
                 os.chown(path, int(os.getuid()), gid)
-                if os.path.isdir(path):
-                    os.chmod(path, 0o770)
-                elif os.path.isfile(path):
-                    os.chmod(path, 0o665)
+                self.file_or_dir(path)
             except PermissionError as e:
                 raise e
+
+    @staticmethod
+    def file_or_dir(path):
+        if os.path.isdir(path):
+            os.chmod(path, 0o770)
+        elif os.path.isfile(path):
+            os.chmod(path, 0o665)
 
     def initialize_loggers(self):
         sys_log = logging.getLogger('domains_api')
