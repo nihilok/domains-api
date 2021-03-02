@@ -66,10 +66,10 @@ class User:
             msg = EmailMessage()
             msg['From'] = self.gmail_address
             msg['To'] = self.gmail_address
-            if ip and msg_type == 'success' and self.notifications not in {'n', 'e'}:
+            if ip and msg_type == 'success' and self.notifications != 'e':
                 msg.set_content(f'IP for {self.domain} has changed! New IP: {ip}')
                 msg['Subject'] = 'IP CHANGED!'
-            elif msg_type == 'error' and self.notifications != 'n':
+            elif msg_type == 'error':
                 msg.set_content(f"Error with {self.domain}'s IPChanger: ({error})!")
                 msg['Subject'] = 'IPCHANGER ERROR!'
             elif outbox_msg:
@@ -130,12 +130,13 @@ python/python3 -m domains_api --help''')
         try:
             if self.user.previous_ip == self.current_ip:
                 log_msg = 'Current IP: %s (no change)' % self.user.previous_ip
+                fh.log(log_msg, 'debug')
             else:
                 self.user.previous_ip = self.current_ip
                 fh.save_user(self.user)
                 self.domains_api_call()
                 log_msg = 'Newly recorded IP: %s' % self.user.previous_ip
-            fh.log(log_msg, 'info')
+                fh.log(log_msg, 'info')
         except AttributeError:
             setattr(self.user, 'previous_ip', self.current_ip)
             fh.save_user(self.user)
@@ -174,8 +175,10 @@ python/python3 -m domains_api --help''')
 
             # Successful request:
             _response = response.split(' ')
-            if 'good' in _response or 'nochg' in _response:
+            if 'good' in _response:
                 self.user.send_notification(self.current_ip)
+            elif 'nochg' in _response:
+                return
 
             # Unsuccessful requests:
             elif response in {'nohost', 'notfqdn'}:
@@ -198,6 +201,7 @@ python/python3 -m domains_api --help''')
                     fh.delete_user()
                     fh.log('API authentication failed, user profile deleted', 'warning')
                     sys.exit(1)
+
         # Local connection related errors
         except (ConnectionError, ReqConError) as e:
             log_msg = 'Connection Error: %s' % e

@@ -46,3 +46,7 @@ https://codereview.stackexchange.com/questions/254272/dynamic-dns-ip-checker-cha
 - Clear logs after 100 lines (keep the last 10 lines)
 - Try/except for permissions (instead of if/else)
 - Other bugfixes/refactoring
+
+0.1.6 (02/03/2020)
+------------------
+- Fixed twitchy email notification bug
