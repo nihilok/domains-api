@@ -1,6 +1,6 @@
 import sys
 
-from domains_api import IPChanger
+from .ip_changer import DomainsUser, IPChanger
 
 
 if __name__ == '__main__':

@@ -7,14 +7,12 @@ To facilitate running a home web server behind a router without a static IP, thi
 ### Usage:
 Can be run from the command line like so:
 
-`python -m domains_api`
+`python -m domains_api [opt]`
 
 or imported into your projects in the normal way*:
 ```
->>>from domains_api import IPChanger
->>>ipchanger = IPChanger()
->>>ipchanger.user.domain
-example.com
+from domains_api.ip_changer import IPChanger
+ipchanger = IPChanger()
 ```
 
 *See below for an example with Django and Apache2.
@@ -37,7 +35,7 @@ On Google Domains the default TTL for Dynamic DNS is 1 min, but unless you expec
 
 Check `~/cron.log` if the script does not run as expected, or to see when the IP was last checked.
 
-The logs are written to both `/var/www/domains-api/domains.log` (posix) or `%LOCALAPPDATA%/domains-api/domains.log` (win), and stdout, so that they also appear in the terminal (&/ cron log).
+The logs are written to both `../site_packages/domains_api/domains.log` (posix) or `%LOCALAPPDATA%/domains-api/domains.log` (win), and stdout, so that they also appear in the terminal (&/ cron log).
 
 After initial setup, the script takes care of everything: if your IP has changed since you last ran it, it will update your Dynamic DNS rule on domains.google.com.
 
@@ -58,18 +56,22 @@ Other options include:
     python -m domains_api                    || -run the script normally without arguments
     python -m domains_api -h --help          || -show this help manual
     python -m domains_api -i --ip            || -show current external IP address
-    python -m domains_api -c --credentials   || -change API credentials
     python -m domains_api -e --email         || -email set up wizard > use to delete email credentials (choose 'n')
     python -m domains_api -n --notifications || -toggle email notification settings > will not delete email address
-    python -m domains_api -u user.file       || (or "--user_load path/to/user.file") -load user from pickle file
     python -m domains_api -d --delete_user   || -delete current user profile
-                                             || User file is saved as "/var/www/domains_api/domains.user"
+    *User file is saved as "../site-packages/domains_api/domains.user". See same location for log.
+
+In order to use without a domain, run:
+
+`python -m domains_api.ip_checker [opt]`
 
 ### Example in Django/Apache2(mod_wsgi) application:
 
-In your Django virtual environment (recommended):
+In your Django environment:
 
 `pip install domains-api apscheduler`
+
+You must first run the script to set up credentials.
 
 Then, in your project you can create a new module called ipChanger in your project's root directory, with an empty `__init__.py` file and an `ip_changer.py` file.
 
@@ -86,8 +88,6 @@ def start():
     scheduler.start()
 ```
 
-Careful not to call `IPChanger` within the `add_job()` method (no parentheses).
-
 Then you will need to add the following to your main app's `apps.py` file:
 
 ```
@@ -98,4 +98,4 @@ class MainConfig(AppConfig):
         from ipChanger import ip_changer
         ip_changer.start()
 ```
-Before you fire up / restart your server you will need to run the script with `sudo` first, so that the appropriate permissions can be set to enable the Apache2 user (www-data) to create/update the log and user configuration files (in `var/www/domains-api/`). If you are running from within a virtual environment (recommended) you will need to specify the virtual environment's python path or sudo will use the root-owned one (`sudo venv/bin/python -m domains_api`). You will then be asked to input your credentials as above. After this process is complete, you can restart your web server. Check `cat /var/log/apache2/error.log` (they are logged as wsgi errors) and `/var/www/domains-api/domains-api.log` to see everything is working as expected.
+Before you fire up / restart your server you will need to run the script with as the Apache2 user first, so that the appropriate permissions can be set to enable the web server to create/update the log and user configuration files. If you are running from within a virtual environment (recommended) you will need to specify the virtual environment's python path or sudo will use the root-owned one (`sudo -u www-data venv/bin/python -m domains_api`). You will then be asked to input your credentials as above. After this process is complete, you can restart your web server. Check `/var/log/apache2/error.log` (they are logged as wsgi errors) and `..site-packages/domains_api/domains.log` to see everything is working as expected.

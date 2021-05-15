@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 class FileHandlers:
-    def __init__(self, path='/var/www/domains-api'):
+    def __init__(self, path=os.path.abspath(os.path.dirname(__file__))):
         self.log_level = self.set_log_level()
         self.path, self.op_sys = self.file_handling(path)
         self.user_file = os.path.abspath(self.path / 'domains.user')
@@ -17,15 +17,11 @@ class FileHandlers:
                     self.make_directories()
                 else:
                     self.make_directories()
-                    self.set_permissions(self.path)
-                    self.own_log, self.sys_log = self.initialize_loggers()
-                    self.set_permissions(self.log_file)
             except (PermissionError, FileNotFoundError, KeyError) as e:
-                print(e)
+                print((e))
                 print('Run with sudo first time to set permissions')
                 sys.exit(1)
-        else:
-            self.own_log, self.sys_log = self.initialize_loggers()
+        self.sys_log = self.initialize_loggers()
 
     @staticmethod
     def file_handling(path):
@@ -60,7 +56,7 @@ class FileHandlers:
 
     def initialize_loggers(self):
         sys_log = logging.getLogger('Domains API')
-        own_log = logging.getLogger(__name__)
+        # own_log = logging.getLogger(__name__)
         if self.log_level == 'debug':
             level = logging.DEBUG
         elif self.log_level == 'warning':
@@ -68,30 +64,31 @@ class FileHandlers:
         else:
             level = logging.INFO
         sys_log.setLevel(level)
-        own_log.setLevel(level)
+        # own_log.setLevel(level)
         fh = logging.FileHandler(self.log_file)
         sh = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter('[%(levelname)s][%(name)s][%(asctime)s] %(message)s',
+        formatter = logging.Formatter('[%(asctime)s][%(levelname)s][%(name)s] %(message)s',
                                       datefmt='%Y-%m-%d %H:%M:%S')
         sh_formatter = logging.Formatter('[%(name)s][%(levelname)s][%(asctime)s] %(message)s',
                                          datefmt='%Y-%m-%d %H:%M:%S')
         fh.setFormatter(formatter)
         sh.setFormatter(sh_formatter)
         sys_log.addHandler(sh)
-        own_log.addHandler(fh)
+        sys_log.addHandler(fh)
+        # own_log.addHandler(fh)
         sys_log.debug('Loggers initialized')
-        return own_log, sys_log
+        return sys_log #,  own_log
 
     def log(self, msg, level='info'):
         if level == 'info':
             self.sys_log.info(msg)
-            self.own_log.info(msg)
+            # self.own_log.info(msg)
         elif level == 'debug':
             self.sys_log.debug(msg)
-            self.own_log.debug(msg)
+            # self.own_log.debug(msg)
         elif level == 'warning':
             self.sys_log.warning(msg)
-            self.own_log.warning(msg)
+            # self.own_log.warning(msg)
 
     def set_log_level(self, level='info'):
         self.log_level = level
