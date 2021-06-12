@@ -31,6 +31,11 @@ class IPChanger(IPChecker):
         if self.changed:
             self.domains_api_call()
 
+    def check_ip(self):
+        super().check_ip()
+        print('IP checked, now performing API call')
+        self.domains_api_call()
+
     def domains_api_call(self):
         """Attempt to change the Dynamic DNS rules via the Google Domains API and handle response codes"""
         try:
@@ -66,8 +71,7 @@ class IPChanger(IPChecker):
                 else:
                     fh.delete_user()
                     fh.log('API authentication failed, user profile deleted', 'warning')
-                    sys.exit(1)
-
+            print('API call complete')
         # Local connection related errors
         except (ConnectionError, ReqConError) as e:
             log_msg = 'Connection Error: %s' % e

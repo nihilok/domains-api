@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+0.2.2.1 (12/06/2021)
+----------------
+- fixed inheritance bug (domains api not being called)
+- relative imports
+
 0.2.1 (15/05/2021)
 ----------------
 - more modular: added IPChecker parent class and BaseUser parent class

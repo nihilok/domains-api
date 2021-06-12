@@ -71,7 +71,6 @@ class BaseUser:
                 fh.log(log_msg, 'warning')
                 self.outbox.append(msg)
                 fh.save_user(self)
-                sys.exit(1)
 
 
 class IPChecker:
