@@ -27,15 +27,15 @@ On **Windows** you can use Task Scheduler; on **Linux/Mac**, add a line to your 
 
 `0 * * * * python3 -m domains_api >> ~/cron.log 2>&1`
 
-If reducing downtime is essential, you could increase the frequency of checks to every 5 minutes, or even less, like this:
+If reducing downtime is essential, you could increase the frequency of checks to every 1 minute, or even less, like this:
 
-`*/5 * * * * ...etc`
+`*/1 * * * * ...etc`
 
-On Google Domains the default TTL for Dynamic DNS is 1 min, but unless you expect your external IP to change very frequently, more regular cron jobs might be a slight waste of resources; even so, the script is very light weight and usually only takes about 1 second to run normally on a Raspberry Pi 3 Ubuntu server.
+On Google Domains the default TTL for Dynamic DNS is 1 minute, but unless you expect your external IP to change very frequently, more regular cron jobs might be a slight waste of resources; even so, the script is very light weight and usually only takes about 1 second to run normally on a Raspberry Pi 3 Ubuntu server.
 
 Check `~/cron.log` if the script does not run as expected, or to see when the IP was last checked.
 
-The logs are written to both `../site_packages/domains_api/domains.log` (posix) or `%LOCALAPPDATA%/domains-api/domains.log` (win), and stdout, so that they also appear in the terminal (&/ cron log).
+The logs are written to both `../site_packages/domains_api/domains.log` (posix) or `%LOCALAPPDATA%/domains-api/domains.log` (win), and stdout, so that they also appear in the terminal & crontab log.
 
 After initial setup, the script takes care of everything: if your IP has changed since you last ran it, it will update your Dynamic DNS rule on domains.google.com.
 
@@ -65,7 +65,7 @@ In order to use without a domain, run:
 
 `python -m domains_api.ip_checker [opt]`
 
-### Example in Django/Apache2(mod_wsgi) application:
+### Example in Django application:
 
 In your Django environment:
 
@@ -73,7 +73,7 @@ In your Django environment:
 
 You must first run the script to set up credentials.
 
-Then, in your project you can create a new module called ipChanger in your project's root directory, with an empty `__init__.py` file and an `ip_changer.py` file.
+Then, in your project you can create a new module called ip_changer in your project's root directory, with an empty `__init__.py` file and an `ip_changer.py` file.
 
 `ip_changer.py` should look something like this:
 
@@ -95,7 +95,7 @@ class MainConfig(AppConfig):
     name = 'main'
 
     def ready(self):
-        from ipChanger import ip_changer
+        from ip_changer import ip_changer
         ip_changer.start()
 ```
-Before you fire up / restart your server you will need to run the script with as the Apache2 user first, so that the appropriate permissions can be set to enable the web server to create/update the log and user configuration files. If you are running from within a virtual environment (recommended) you will need to specify the virtual environment's python path or sudo will use the root-owned one (`sudo -u www-data venv/bin/python -m domains_api`). You will then be asked to input your credentials as above. After this process is complete, you can restart your web server. Check `/var/log/apache2/error.log` (they are logged as wsgi errors) and `..site-packages/domains_api/domains.log` to see everything is working as expected.
+Check `/var/log/apache2/error.log` or `/var/log/nginx/error.log` or your webserver log location (might be logged as wsgi errors) and `..site-packages/domains_api/domains.log` to see everything is working as expected.

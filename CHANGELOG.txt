@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+0.2.3 (25/06/2021)
+----------------
+- reinstated check if ip changed before API call since refactoring.
+
 0.2.2.1 (12/06/2021)
 ----------------
 - fixed inheritance bug (domains api not being called)
