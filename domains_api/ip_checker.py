@@ -138,8 +138,8 @@ class IPChecker:
             # Send outbox emails:
             if self.user.outbox:
                 for i in range(len(self.user.outbox)):
-                    self.user.send_notification(outbox_msg=self.user.outbox.pop(i))
-                    fh.log('Outbox message sent', 'info')
+                    if self.user.send_notification(outbox_msg=self.user.outbox.pop(i)):
+                        fh.log('Outbox message sent', 'info')
                 fh.save_user(self.user)
             fh.clear_logs()
 

@@ -1,9 +1,10 @@
 Change Log
 ==========
 
-0.2.3 (25/06/2021)
+0.2.4 (25/06/2021)
 ----------------
 - reinstated check if ip changed before API call since refactoring.
+- fixed logging bug re failed emails
 
 0.2.2.1 (12/06/2021)
 ----------------
