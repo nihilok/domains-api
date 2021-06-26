@@ -1,6 +1,0 @@
-[2021-05-15 11:45:51][INFO][Domains API] New user created.
-(See `python -m domains_api --help` for help changing/removing the user)
-[2021-06-12 10:38:45][INFO][Domains API] Newly recorded IP: 86.137.238.213
-[2021-06-12 10:38:47][INFO][Domains API] Google Domains API response: good 86.137.238.213
-[2021-06-12 10:38:48][WARNING][Domains API] Email notification not sent: (534, b'5.7.9 Application-specific password required. Learn more at\n5.7.9  https://support.google.com/mail/?p=InvalidSecondFactor r2sm10397951wrv.39 - gsmtp')
-[2021-06-12 10:38:48][INFO][Domains API] Google Domains API response: nochg 86.137.238.213
