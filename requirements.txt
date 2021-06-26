@@ -10,7 +10,6 @@ importlib-metadata==4.0.1
 jeepney==0.6.0
 keyring==23.0.1
 packaging==20.9
-pkg-resources==0.0.0
 pkginfo==1.7.0
 pycparser==2.20
 Pygments==2.9.0
