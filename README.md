@@ -56,6 +56,7 @@ Other options include:
     python -m domains_api                    || -run the script normally without arguments
     python -m domains_api -h --help          || -show this help manual
     python -m domains_api -i --ip            || -show current external IP address
+    python -m domains_api -f --force         || - force domains API call, necessary or not
     python -m domains_api -e --email         || -email set up wizard > use to delete email credentials (choose 'n')
     python -m domains_api -n --notifications || -toggle email notification settings > will not delete email address
     python -m domains_api -d --delete_user   || -delete current user profile
