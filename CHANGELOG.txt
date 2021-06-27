@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+0.2.5 (27/06/2021)
+----------------
+- added '-f' or '--force' option to force api call even if recorded IP hasn't changed.
+
 0.2.4 (25/06/2021)
 ----------------
 - reinstated check if ip changed before API call since refactoring.
