@@ -74,10 +74,11 @@ class BaseUser:
 
 
 class IPChecker:
-    ARG_STRING = 'dehin'
+    ARG_STRING = 'defhin'
     ARG_LIST = [
         'delete_user',
         'email',
+        'force',
         'help',
         'ip',
         'notifications',
@@ -150,34 +151,37 @@ class IPChecker:
                 print('''
 [Domains API] Current external IP: %s
                 ''' % get_ip_only())
-            elif opt in {'-h', '--help'}:
+            if opt in {'-h', '--help'}:
                 print(
                     """
 
-domains-api help manual (command line options):
-```````````````````````````````````````````````````````````````````````````````````````
+    domains-api help manual (command line options):
+    ```````````````````````````````````````````````````````````````````````````````````````
 
-python -m domains_api                    || - set up /or check ip, change if necessary
-python -m domains_api -h --help          || - show this help manual
-python -m domains_api -i --ip            || - show current external IP address
-python -m domains_api -e --email         || - email set up wizard
-python -m domains_api -n --notifications || - toggle email notification settings
-python -m domains_api -d --delete_user   || - delete current email/domains profile
+    python -m domains_api                    || - set up /or check ip, change if necessary
+    python -m domains_api -f --force         || - force domains API call, necessary or not
+    python -m domains_api -h --help          || - show this help manual
+    python -m domains_api -i --ip            || - show current external IP address
+    python -m domains_api -e --email         || - email set up wizard
+    python -m domains_api -n --notifications || - toggle email notification settings
+    python -m domains_api -d --delete_user   || - delete current email/domains profile
 
-*User profile is stored as "../site-packages/domains_api/domains.user"
-"""
+    *User profile is stored as "../site-packages/domains_api/domains.user"
+    """
                 )
 
             elif opt in {'-d', '--delete'}:
                 fh.delete_user()
                 fh.log('User deleted', 'info')
-                print('>>> Run the script without options to create a new user' # , or '
+                print('>>> Run the script without options to create a new user'  # , or '
                       # '"python3 -m domains_api -u path/to/pickle" to load one from file'
                       )
+
             elif opt in {'-e', '--email'}:
                 self.user.set_email()
                 fh.save_user(self.user)
                 fh.log('Notification settings changed', 'info')
+
             elif opt in {'-n', '--notifications'}:
                 n_options = {'Y': '[all changes]', 'e': '[errors only]', 'n': '[none]'}
                 options_iter = cycle(n_options.keys())
@@ -192,7 +196,7 @@ python -m domains_api -d --delete_user   || - delete current email/domains profi
                     fh.log('No email user set, running email set up wizard...', 'info')
                     self.user.set_email()
                     fh.save_user(self.user)
-            sys.exit()
+
 
 
 if __name__ == "__main__":

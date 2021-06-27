@@ -1,6 +1,7 @@
 import sys
 
 from getpass import getpass
+from itertools import cycle
 
 from requests import post
 from requests.exceptions import ConnectionError as ReqConError
@@ -26,6 +27,7 @@ class DomainsUser(BaseUser):
 
 
 class IPChanger(IPChecker):
+
     def __init__(self, argv=None, user_type=DomainsUser):
         super().__init__(argv, user_type)
         if self.changed:
@@ -33,8 +35,8 @@ class IPChanger(IPChecker):
 
     def check_ip(self):
         super().check_ip()
-        if self.changed:
-            self.domains_api_call()
+        # if self.changed:
+        self.domains_api_call()
 
     def domains_api_call(self):
         """Attempt to change the Dynamic DNS rules via the Google Domains API and handle response codes"""
@@ -49,6 +51,8 @@ class IPChanger(IPChecker):
             if 'good' in _response:
                 self.user.send_notification(self.current_ip)
             elif 'nochg' in _response:
+                log_msg = 'No change to IP'
+                fh.log(log_msg, 'info')
                 return
 
             # Unsuccessful requests:
@@ -76,6 +80,13 @@ class IPChanger(IPChecker):
             log_msg = 'Connection Error: %s' % e
             fh.log(log_msg, 'warning')
             self.user.send_notification(msg_type='error', error=e)
+
+    def arg_parse(self, opts):
+        super().arg_parse(opts)
+        for opt in opts:
+            if opt in {'-f', '--force'}:
+                self.domains_api_call()
+
 
 if __name__ == "__main__":
     IPChanger(sys.argv[1:])
