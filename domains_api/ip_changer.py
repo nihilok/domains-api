@@ -35,8 +35,8 @@ class IPChanger(IPChecker):
 
     def check_ip(self):
         super().check_ip()
-        # if self.changed:
-        self.domains_api_call()
+        if self.changed:
+            self.domains_api_call()
 
     def domains_api_call(self):
         """Attempt to change the Dynamic DNS rules via the Google Domains API and handle response codes"""
