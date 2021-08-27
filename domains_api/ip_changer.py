@@ -1,7 +1,6 @@
 import sys
 
 from getpass import getpass
-from itertools import cycle
 
 from requests import post
 from requests.exceptions import ConnectionError as ReqConError

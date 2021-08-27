@@ -12,8 +12,8 @@ from requests.exceptions import ConnectionError as ReqConError
 
 from .file_handlers import FileHandlers
 
-fh = FileHandlers()
 
+fh = FileHandlers()
 
 # # Uncomment or replicate in your code to set log level:
 # fh.set_log_level('debug')
