@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-0.2.6 (27/08/2021)
+0.2.5.4 (27/08/2021)
 ----------------
 - fixed bug causing -f opt not to fire
 
