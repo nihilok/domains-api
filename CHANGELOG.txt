@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+0.2.6 (27/08/2021)
+----------------
+- fixed bug causing -f opt not to fire
+
 0.2.5 (27/06/2021)
 ----------------
 - added '-f' or '--force' option to force api call even if recorded IP hasn't changed.
