@@ -35,12 +35,13 @@ class IPChanger(IPChecker):
 
     def check_ip(self):
         super().check_ip()
-        # if self.changed:
-        self.domains_api_call()
+        if self.changed:
+            self.domains_api_call()
 
     def domains_api_call(self):
         """Attempt to change the Dynamic DNS rules via the Google Domains API and handle response codes"""
         try:
+            print('Checking ip....')
             req = post(f'{self.user.req_url}&myip={self.current_ip}')
             response = req.text
             log_msg = 'Google Domains API response: %s' % response
@@ -80,12 +81,6 @@ class IPChanger(IPChecker):
             log_msg = 'Connection Error: %s' % e
             fh.log(log_msg, 'warning')
             self.user.send_notification(msg_type='error', error=e)
-
-    def arg_parse(self, opts):
-        super().arg_parse(opts)
-        for opt in opts:
-            if opt in {'-f', '--force'}:
-                self.domains_api_call()
 
 
 if __name__ == "__main__":

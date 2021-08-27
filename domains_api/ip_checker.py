@@ -13,6 +13,8 @@ from requests.exceptions import ConnectionError as ReqConError
 from .file_handlers import FileHandlers
 
 fh = FileHandlers()
+
+
 # # Uncomment or replicate in your code to set log level:
 # fh.set_log_level('debug')
 # fh.initialize_loggers()
@@ -31,13 +33,15 @@ class BaseUser:
         self.domain = input('What is the reference for this IP? (Anything you like, e.g "example.com" or "Work PC"): ')
         self.notifications, self.gmail_address, self.gmail_password = self.set_email()
         self.outbox = []
+        self.previous_ip = ''
 
     def set_email(self):
         """Set/return attributes for Gmail credentials if user enables notifications"""
         self.notifications = input("Enable email notifications? [Y]all(default); [e]errors only; [n]no: ").lower()
         if self.notifications != 'n':
             self.gmail_address = input("What's your email address?: ")
-            self.gmail_password = base64.b64encode(getpass("What's your email password?: ").encode("utf-8"))
+            self.gmail_password = base64.b64encode(
+                getpass("What's your email(less secure)/app(more secure) password?: ").encode("utf-8"))
             if self.notifications != 'e':
                 self.notifications = 'Y'
             return self.notifications, self.gmail_address, self.gmail_password
@@ -72,6 +76,9 @@ class BaseUser:
                 self.outbox.append(msg)
                 fh.save_user(self)
 
+    def set_domains_credentials(self):
+        raise NotImplementedError
+
 
 class IPChecker:
     ARG_STRING = 'defhin'
@@ -88,6 +95,7 @@ class IPChecker:
         """Check for command line arguments, load/create User instance,
                check previous IP address against current external IP, and change via the API if different."""
         self.changed = False
+        self.current_ip = self.get_set_ip()
         # Load old user, or create new one:
         if os.path.isfile(fh.user_file):
             self.user = fh.load_user(fh.user_file)
@@ -96,6 +104,7 @@ class IPChecker:
             self.user = user_type()
             fh.log('New user created.\n(See `python -m domains_api --help` for help changing/removing the user)',
                    'info')
+        # print(dir(self.user))
 
         # Parse command line options:
         try:
@@ -118,7 +127,6 @@ class IPChecker:
             self.user.send_notification(msg_type='error', error=e)
 
     def check_ip(self):
-        self.current_ip = self.get_set_ip()
         try:
             if self.user.previous_ip == self.current_ip:
                 log_msg = 'Current IP: %s (no change)' % self.user.previous_ip
@@ -131,6 +139,9 @@ class IPChecker:
                 fh.log(log_msg, 'info')
         except AttributeError:
             setattr(self.user, 'previous_ip', self.current_ip)
+            self.changed = True
+            log_msg = 'Newly recorded IP: %s' % self.user.previous_ip
+            fh.log(log_msg, 'info')
             fh.save_user(self.user)
         finally:
             if fh.op_sys == 'pos' and os.geteuid() == 0:
@@ -197,6 +208,9 @@ class IPChecker:
                     self.user.set_email()
                     fh.save_user(self.user)
 
+            elif opt in {'-f', '--force'}:
+                print('Forcing API call')
+                self.changed = True
 
 
 if __name__ == "__main__":
