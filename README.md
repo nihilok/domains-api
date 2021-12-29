@@ -31,7 +31,7 @@ If reducing downtime is essential, you could increase the frequency of checks to
 
 `*/1 * * * * ...etc`
 
-On Google Domains the default TTL for Dynamic DNS is 1 minute, but unless you expect your external IP to change very frequently, more regular cron jobs might be a slight waste of resources; even so, the script is very light weight and usually only takes about 1 second to run normally on a Raspberry Pi 3 Ubuntu server.
+On Google Domains the default TTL for Dynamic DNS is 1 minute, so checks should not need to be more frequent than this, but unless you expect your external IP to change very frequently, such regular cron jobs might be a slight waste of resources; even so, the script is very light weight and usually only takes just over a second to run normally on a Raspberry Pi 3 Ubuntu server.
 
 Check `~/cron.log` if the script does not run as expected, or to see when the IP was last checked.
 

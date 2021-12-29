@@ -3,7 +3,7 @@ import sys
 from .ip_changer import DomainsUser, IPChanger
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # # Uncomment to simulate a change of IP:
     # user = User()
