@@ -60,6 +60,7 @@ Other options include:
     python -m domains_api -e --email         || -email set up wizard > use to delete email credentials (choose 'n')
     python -m domains_api -n --notifications || -toggle email notification settings > will not delete email address
     python -m domains_api -d --delete_user   || -delete current user profile
+    python -m domains_api -l --load_user     || - load email/domains profile from file
     *User file is saved as "../site-packages/domains_api/domains.user". See same location for log.
 
 In order to use without a domain, run:

@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+0.2.7 (15/01/2022)
+----------------
+- re-add -l --load-user opt
+- stop double check bug
+
 0.2.6 (29/12/2021)
 ----------------
 - format code

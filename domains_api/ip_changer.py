@@ -46,7 +46,6 @@ class IPChanger(IPChecker):
     def domains_api_call(self):
         """Attempt to change the Dynamic DNS rules via the Google Domains API and handle response codes"""
         try:
-            print("Checking ip....")
             req = post(f"{self.user.req_url}&myip={self.current_ip}")
             response = req.text
             log_msg = "Google Domains API response: %s" % response
@@ -59,7 +58,6 @@ class IPChanger(IPChecker):
             elif "nochg" in _response:
                 log_msg = "No change to IP"
                 fh.log(log_msg, "info")
-                return
 
             # Unsuccessful requests:
             elif response in {"nohost", "notfqdn"}:

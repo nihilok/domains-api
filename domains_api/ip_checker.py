@@ -92,14 +92,16 @@ class BaseUser:
 
 
 class IPChecker:
-    ARG_STRING = "defhin"
+    ARG_STRING = "defhil:ns"
     ARG_LIST = [
         "delete_user",
         "email",
         "force",
         "help",
         "ip",
+        "load_user=",
         "notifications",
+        "simulate",
     ]
 
     def __init__(self, argv=None, user_type=BaseUser):
@@ -111,13 +113,21 @@ class IPChecker:
         if os.path.isfile(fh.user_file):
             self.user = fh.load_user(fh.user_file)
             fh.log("User loaded from pickle", "debug")
+        elif arg := [arg for arg in sys.argv if arg in {"-l", "--load_user"}]:
+            try:
+                self.user = fh.load_user(sys.argv[sys.argv.index(arg[0]) + 1])
+                fh.log("User loaded from pickle", "debug")
+                fh.save_user(self.user)
+                fh.log("New user saved", "info")
+                return
+            except Exception as e:
+                raise e
         else:
             self.user = user_type()
             fh.log(
                 "New user created.\n(See `python -m domains_api --help` for help changing/removing the user)",
                 "info",
             )
-        # print(dir(self.user))
 
         # Parse command line options:
         try:
@@ -194,6 +204,7 @@ class IPChecker:
     python -m domains_api -e --email         || - email set up wizard
     python -m domains_api -n --notifications || - toggle email notification settings
     python -m domains_api -d --delete_user   || - delete current email/domains profile
+    python -m domains_api -l --load_user     || - load email/domains profile from file
 
     *User profile is stored as "../site-packages/domains_api/domains.user"
     """
@@ -203,14 +214,24 @@ class IPChecker:
                 fh.delete_user()
                 fh.log("User deleted", "info")
                 print(
-                    ">>> Run the script without options to create a new user"  # , or '
-                    # '"python3 -m domains_api -u path/to/pickle" to load one from file'
+                    ">>> Run the script without options to create a new user, or "
+                    '"python3 -m domains_api -l path/to/pickle" to load one from file'
                 )
 
             elif opt in {"-e", "--email"}:
                 self.user.set_email()
                 fh.save_user(self.user)
                 fh.log("Notification settings changed", "info")
+
+            elif opt in {"-l", "--load_user"}:
+                if (
+                    input("Are you sure you want to load a new user? [Y/n]").lower()
+                    == "n"
+                ):
+                    return
+                self.user = fh.load_user(arg)
+                fh.save_user(self.user)
+                fh.log("New user loaded", "info")
 
             elif opt in {"-n", "--notifications"}:
                 n_options = {"Y": "[all changes]", "e": "[errors only]", "n": "[none]"}
@@ -234,7 +255,7 @@ class IPChecker:
                     fh.save_user(self.user)
 
             elif opt in {"-f", "--force"}:
-                print("Forcing API call")
+                fh.log("***Forcing API call***", "info")
                 self.changed = True
 
 
