@@ -64,51 +64,41 @@ class BaseUser:
         self, ip=None, msg_type="success", error=None, outbox_msg=None
     ):
         """Notify user via email if IP change is made successfully or if API call fails."""
-        if self.notifications != "n":
-            msg = EmailMessage()
-            msg["From"] = self.gmail_address
-            msg["To"] = self.gmail_address
-            if ip and msg_type == "success" and self.notifications != "e":
-                msg.set_content(f"IP for {self.domain} has changed! New IP: {ip}")
-                msg["Subject"] = "Your IP has changed!"
-            elif msg_type == "error":
-                msg.set_content(f"Error with {self.domain}'s IPChanger: ({error})!")
-                msg["Subject"] = "IPCHANGER ERROR!"
-            elif outbox_msg:
-                msg = outbox_msg
+        if self.notifications == "n":
+            return
+        msg = EmailMessage()
+        msg["From"] = self.gmail_address
+        msg["To"] = self.gmail_address
+        if ip and msg_type == "success" and self.notifications != "e":
+            msg.set_content(f"IP for {self.domain} has changed! New IP: {ip}")
+            msg["Subject"] = "Your IP has changed!"
+        elif msg_type == "error":
+            msg.set_content(f"Error with {self.domain}'s IPChanger: ({error})!")
+            msg["Subject"] = "IPCHANGER ERROR!"
+        elif outbox_msg:
+            msg = outbox_msg
 
-            try:
-                server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-                server.ehlo()
-                server.login(
-                    self.gmail_address,
-                    base64.b64decode(self.gmail_password).decode("utf-8"),
-                )
-                server.send_message(msg)
-                server.close()
-                return True
-            except Exception as e:
-                log_msg = "Email notification not sent: %s" % e
-                fh.log(log_msg, "warning")
-                self.outbox.append(msg)
-                fh.save_user(self)
+        try:
+            server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+            server.ehlo()
+            server.login(
+                self.gmail_address,
+                base64.b64decode(self.gmail_password).decode("utf-8"),
+            )
+            server.send_message(msg)
+            server.close()
+            return True
+        except Exception as e:
+            log_msg = "Email notification not sent: %s" % e
+            fh.log(log_msg, "warning")
+            self.outbox.append(msg)
+            fh.save_user(self)
 
     def set_domains_credentials(self):
         raise NotImplementedError
 
 
 class IPChecker:
-    ARG_STRING = "defhil:ns"
-    ARG_LIST = [
-        "delete_user",
-        "email",
-        "force",
-        "help",
-        "ip",
-        "load_user=",
-        "notifications",
-        "simulate",
-    ]
 
     def __init__(self, argv=None, user_type=BaseUser):
         """Check for command line arguments, load/create User instance,
@@ -177,7 +167,7 @@ class IPChecker:
             fh.clear_logs()
 
     def arg_parse(self, opts):
-        """Parses command line options: e.g. "python -m domains_api --help" """
+        """Parses command line options: e.g. "domains-api --ip" """
         if opts.ip:
             print(
                 """
