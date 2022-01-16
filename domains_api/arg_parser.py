@@ -55,5 +55,5 @@ parser.add_argument(
     choices=["all", "errors", "off"],
     help="toggle notifications for all events, errors only or off.",
 )
-# print(parser.parse_args(["-n", 'all']))
+
 parser.print_help()
