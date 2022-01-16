@@ -1,6 +1,5 @@
 import os
 import sys
-import getopt
 import base64
 import smtplib
 from email.message import EmailMessage
@@ -207,11 +206,16 @@ class IPChecker:
 
         elif opts.notify:
             n_options = {"Y": "[all changes]", "e": "[errors only]", "n": "[none]"}
+            arg_hash = {
+                "all": 'Y',
+                "errors": 'e',
+                "none": 'n'
+            }
             options_iter = cycle(n_options.keys())
             for option in options_iter:
                 if self.user.notifications == option:
                     break
-            self.user.notifications = next(options_iter)
+            self.user.notifications = arg_hash.get(opts.notify) or next(options_iter)
             fh.save_user(self.user)
             log_msg = (
                 "Notification settings changed to %s"
@@ -228,6 +232,9 @@ class IPChecker:
 
         elif opts.force:
             fh.log("***Forcing API call***", "info")
+            if opts.force is not True:
+                self.current_ip = opts.force
+                fh.log(f"Using IP: {opts.force}", "info")
             self.changed = True
 
 
