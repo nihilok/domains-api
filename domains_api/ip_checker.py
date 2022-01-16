@@ -3,13 +3,12 @@ import sys
 import getopt
 import base64
 import smtplib
-import time
 from email.message import EmailMessage
 from getpass import getpass
 from itertools import cycle
 
 from requests import get
-from requests.exceptions import ConnectionError as ReqConError
+from requests.exceptions import RequestException
 
 from . import __VERSION__
 from .file_handlers import FileHandlers
@@ -115,7 +114,7 @@ class IPChecker:
         """Check for command line arguments, load/create User instance,
         check previous IP address against current external IP, and change via the API if different."""
         self.changed = False
-        self.current_ip = self.get_set_ip()
+        self.current_ip = self.get_ip()
 
         if [
             arg
@@ -152,11 +151,11 @@ class IPChecker:
         if opts:
             self.arg_parse(opts)
 
-    def get_set_ip(self):
+    def get_ip(self):
         """Gets current external IP from api.ipify.org and sets self.current_ip"""
         try:
             return get_ip_only()
-        except (ReqConError, ConnectionError) as e:
+        except (RequestException, ConnectionError) as e:
             fh.log("Connection Error. Could not reach api.ipify.org", "warning")
             self.user.send_notification(msg_type="error", error=e)
 
@@ -177,9 +176,6 @@ class IPChecker:
             log_msg = "Newly recorded IP: %s" % self.user.previous_ip
             fh.log(log_msg, "info")
             fh.save_user(self.user)
-        finally:
-            if fh.op_sys == "pos" and os.geteuid() == 0:
-                fh.set_permissions(fh.user_file)
 
             # Send outbox emails:
             if self.user.outbox:
@@ -213,7 +209,7 @@ domains-api -n --notifications      | toggle email notification settings
 domains-api -d --delete_user        | delete current email/domains profile
 domains-api -l --load_user <path>   | load email/domains profile from file
 
-User profile is stored as "../site-packages/domains_api/domains.user"
+User profile is stored as "~/.domains-api/domains.user"
 """
                 )
 
