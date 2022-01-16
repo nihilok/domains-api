@@ -1,10 +1,13 @@
 Change Log
 ==========
 
-0.2.7 (15/01/2022)
+0.2.9 (16/01/2022)
 ----------------
 - re-add -l --load-user opt
+- skip user creation for --help --ip & --load_user opts
 - stop double check bug
+- add script to path
+- delete user logging bugfix
 
 0.2.6 (29/12/2021)
 ----------------

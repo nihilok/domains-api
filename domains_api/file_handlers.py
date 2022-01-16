@@ -6,29 +6,27 @@ from pathlib import Path
 
 
 class FileHandlers:
-    def __init__(self, path=os.path.abspath(os.path.dirname(__file__))):
+    def __init__(self):
         self.log_level = self.set_log_level()
-        self.path, self.op_sys = self.file_handling(path)
+        self.path, self.op_sys = self.file_handling()
         self.user_file = os.path.abspath(self.path / "domains.user")
         self.log_file = os.path.abspath(self.path / "domains.log")
         if not os.path.exists(self.log_file) or not os.path.exists(self.user_file):
             try:
-                if self.op_sys == "nt":
-                    self.make_directories()
-                else:
-                    self.make_directories()
+                self.make_directories()
             except (PermissionError, FileNotFoundError, KeyError) as e:
                 print("Run with sudo first time to set permissions")
                 raise e
         self.sys_log = self.initialize_loggers()
 
     @staticmethod
-    def file_handling(path):
+    def file_handling():
         if os.name == "nt":
+            path = "domains-api"
             path = Path(os.getenv("LOCALAPPDATA")) / path
             op_sys = "nt"
         else:
-            path = Path(path)
+            path = Path(os.path.abspath(os.getenv("HOME"))) / ".domains-api"
             op_sys = "pos"
         return path, op_sys
 
@@ -92,27 +90,30 @@ class FileHandlers:
         return self.log_level
 
     def save_user(self, user):
-
         """Pickle (serialize) user instance."""
-
         with open(self.user_file, "wb") as pickle_file:
             pickle.dump(user, pickle_file)
         self.log("User saved.", "debug")
 
     @staticmethod
     def load_user(user_file):
-
         """Unpickle (deserialize) user instance."""
-
         with open(user_file, "rb") as pickle_file:
             return pickle.load(pickle_file)
 
     def delete_user(self):
-
-        """Delete pickle file (serialized user instance)."""
-
-        if input("Are you sure? (Y/n): ").lower() != "n":
-            os.remove(self.user_file)
+        """Delete user pickle file (serialized user instance)."""
+        if (
+            input("Are you sure you want to delete the current user? [Y/n] ").lower()
+            == "n"
+        ):
+            return
+        os.remove(self.user_file)
+        self.log("User deleted", "info")
+        print(
+            "Run the script without options to create a new user, or "
+            '"domains-api -l path/to/pickle" to load one from file'
+        )
 
     def clear_logs(self):
         with open(self.log_file, "r") as r:
