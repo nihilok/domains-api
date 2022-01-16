@@ -12,6 +12,7 @@ from requests.exceptions import RequestException
 
 from . import __VERSION__
 from .file_handlers import FileHandlers
+from .arg_parser import parser
 
 
 fh = FileHandlers()
@@ -140,16 +141,7 @@ class IPChecker:
 
     def get_opts(self, argv):
         """Parse command line options"""
-        try:
-            opts, _args = getopt.getopt(argv, self.ARG_STRING, self.ARG_LIST)
-        except getopt.GetoptError:
-            print(
-                """Usage:
-        domains-api --help"""
-            )
-            sys.exit(2)
-        if opts:
-            self.arg_parse(opts)
+        self.arg_parse(parser.parse_args(argv))
 
     def get_ip(self):
         """Gets current external IP from api.ipify.org and sets self.current_ip"""
@@ -187,74 +179,56 @@ class IPChecker:
 
     def arg_parse(self, opts):
         """Parses command line options: e.g. "python -m domains_api --help" """
-        for opt, arg in opts:
-            if opt in {"-i", "--ip"}:
-                print(
-                    """
-[Domains API] Current external IP: %s
+        if opts.ip:
+            print(
                 """
-                    % get_ip_only()
-                )
-            if opt in {"-h", "--help"}:
-                print(
-                    """
-domains-api help manual (command line options):
-```````````````````````````````````````````````````````````````````````````````````````
-domains-api                         | set up /or check ip, change if necessary
-domains-api -h --help               | show this help manual
-domains-api -i --ip                 | show current external IP address
-domains-api -f --force              | force domains API call, necessary or not
-domains-api -e --email              | email set up wizard
-domains-api -n --notifications      | toggle email notification settings
-domains-api -d --delete_user        | delete current email/domains profile
-domains-api -l --load_user <path>   | load email/domains profile from file
+[Domains API] Current external IP: %s
+            """
+                % get_ip_only()
+            )
 
-User profile is stored as "~/.domains-api/domains.user"
-"""
-                )
+        elif opts.delete_user:
+            fh.delete_user()
 
-            elif opt in {"-d", "--delete"}:
-                fh.delete_user()
+        elif opts.email:
+            self.user.set_email()
+            fh.save_user(self.user)
+            fh.log("Notification settings changed", "info")
 
-            elif opt in {"-e", "--email"}:
+        elif opts.load_user:
+            if (
+                input("Are you sure you want to load a new user? [Y/n] ").lower()
+                == "n"
+            ):
+                return
+            self.user = fh.load_user(opts.load_user)
+            fh.save_user(self.user)
+            fh.log("New user loaded", "info")
+
+        elif opts.notify:
+            n_options = {"Y": "[all changes]", "e": "[errors only]", "n": "[none]"}
+            options_iter = cycle(n_options.keys())
+            for option in options_iter:
+                if self.user.notifications == option:
+                    break
+            self.user.notifications = next(options_iter)
+            fh.save_user(self.user)
+            log_msg = (
+                "Notification settings changed to %s"
+                % n_options[self.user.notifications]
+            )
+            fh.log(log_msg, "info")
+            if (
+                self.user.notifications in {"Y", "e"}
+                and not self.user.gmail_address
+            ):
+                fh.log("No email user set, running email set up wizard...", "info")
                 self.user.set_email()
                 fh.save_user(self.user)
-                fh.log("Notification settings changed", "info")
 
-            elif opt in {"-l", "--load_user"}:
-                if (
-                    input("Are you sure you want to load a new user? [Y/n] ").lower()
-                    == "n"
-                ):
-                    return
-                self.user = fh.load_user(arg)
-                fh.save_user(self.user)
-                fh.log("New user loaded", "info")
-
-            elif opt in {"-n", "--notifications"}:
-                n_options = {"Y": "[all changes]", "e": "[errors only]", "n": "[none]"}
-                options_iter = cycle(n_options.keys())
-                for option in options_iter:
-                    if self.user.notifications == option:
-                        break
-                self.user.notifications = next(options_iter)
-                fh.save_user(self.user)
-                log_msg = (
-                    "Notification settings changed to %s"
-                    % n_options[self.user.notifications]
-                )
-                fh.log(log_msg, "info")
-                if (
-                    self.user.notifications in {"Y", "e"}
-                    and not self.user.gmail_address
-                ):
-                    fh.log("No email user set, running email set up wizard...", "info")
-                    self.user.set_email()
-                    fh.save_user(self.user)
-
-            elif opt in {"-f", "--force"}:
-                fh.log("***Forcing API call***", "info")
-                self.changed = True
+        elif opts.force:
+            fh.log("***Forcing API call***", "info")
+            self.changed = True
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 import argparse
-from constants import __VERSION__
+from .constants import __VERSION__
 
 
 class OptionalAction(argparse.Action):
@@ -55,5 +55,3 @@ parser.add_argument(
     choices=["all", "errors", "off"],
     help="toggle notifications for all events, errors only or off.",
 )
-
-parser.print_help()
