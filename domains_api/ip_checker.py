@@ -120,7 +120,8 @@ class IPChecker:
         else:
             self.user = user_type()
             fh.log(
-                "New user created.\n(See `python -m domains_api --help` for help changing/removing the user)",
+                "New user created.\n"
+                "(See `domains-api --help` for help changing/removing the user)",
                 "info",
             )
         if argv:
