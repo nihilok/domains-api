@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+0.2.10.1 (16/01/2022)
+-------------------
+- hotfix for version file not found
+
 0.2.10 (16/01/2022)
 -------------------
 - getopt --> argparser
