@@ -1,18 +1,17 @@
 import os
 import sys
-import getopt
 import base64
 import smtplib
-import time
 from email.message import EmailMessage
 from getpass import getpass
 from itertools import cycle
 
 from requests import get
-from requests.exceptions import ConnectionError as ReqConError
+from requests.exceptions import RequestException
 
 from . import __VERSION__
 from .file_handlers import FileHandlers
+from .arg_parser import parser
 
 
 fh = FileHandlers()
@@ -65,57 +64,47 @@ class BaseUser:
         self, ip=None, msg_type="success", error=None, outbox_msg=None
     ):
         """Notify user via email if IP change is made successfully or if API call fails."""
-        if self.notifications != "n":
-            msg = EmailMessage()
-            msg["From"] = self.gmail_address
-            msg["To"] = self.gmail_address
-            if ip and msg_type == "success" and self.notifications != "e":
-                msg.set_content(f"IP for {self.domain} has changed! New IP: {ip}")
-                msg["Subject"] = "Your IP has changed!"
-            elif msg_type == "error":
-                msg.set_content(f"Error with {self.domain}'s IPChanger: ({error})!")
-                msg["Subject"] = "IPCHANGER ERROR!"
-            elif outbox_msg:
-                msg = outbox_msg
+        if self.notifications == "n":
+            return
+        msg = EmailMessage()
+        msg["From"] = self.gmail_address
+        msg["To"] = self.gmail_address
+        if ip and msg_type == "success" and self.notifications != "e":
+            msg.set_content(f"IP for {self.domain} has changed! New IP: {ip}")
+            msg["Subject"] = "Your IP has changed!"
+        elif msg_type == "error":
+            msg.set_content(f"Error with {self.domain}'s IPChanger: ({error})!")
+            msg["Subject"] = "IPCHANGER ERROR!"
+        elif outbox_msg:
+            msg = outbox_msg
 
-            try:
-                server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-                server.ehlo()
-                server.login(
-                    self.gmail_address,
-                    base64.b64decode(self.gmail_password).decode("utf-8"),
-                )
-                server.send_message(msg)
-                server.close()
-                return True
-            except Exception as e:
-                log_msg = "Email notification not sent: %s" % e
-                fh.log(log_msg, "warning")
-                self.outbox.append(msg)
-                fh.save_user(self)
+        try:
+            server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+            server.ehlo()
+            server.login(
+                self.gmail_address,
+                base64.b64decode(self.gmail_password).decode("utf-8"),
+            )
+            server.send_message(msg)
+            server.close()
+            return True
+        except Exception as e:
+            log_msg = "Email notification not sent: %s" % e
+            fh.log(log_msg, "warning")
+            self.outbox.append(msg)
+            fh.save_user(self)
 
     def set_domains_credentials(self):
         raise NotImplementedError
 
 
 class IPChecker:
-    ARG_STRING = "defhil:ns"
-    ARG_LIST = [
-        "delete_user",
-        "email",
-        "force",
-        "help",
-        "ip",
-        "load_user=",
-        "notifications",
-        "simulate",
-    ]
 
     def __init__(self, argv=None, user_type=BaseUser):
         """Check for command line arguments, load/create User instance,
         check previous IP address against current external IP, and change via the API if different."""
         self.changed = False
-        self.current_ip = self.get_set_ip()
+        self.current_ip = self.get_ip()
 
         if [
             arg
@@ -131,7 +120,8 @@ class IPChecker:
         else:
             self.user = user_type()
             fh.log(
-                "New user created.\n(See `python -m domains_api --help` for help changing/removing the user)",
+                "New user created.\n"
+                "(See `domains-api --help` for help changing/removing the user)",
                 "info",
             )
         if argv:
@@ -141,22 +131,13 @@ class IPChecker:
 
     def get_opts(self, argv):
         """Parse command line options"""
-        try:
-            opts, _args = getopt.getopt(argv, self.ARG_STRING, self.ARG_LIST)
-        except getopt.GetoptError:
-            print(
-                """Usage:
-        domains-api --help"""
-            )
-            sys.exit(2)
-        if opts:
-            self.arg_parse(opts)
+        self.arg_parse(parser.parse_args(argv))
 
-    def get_set_ip(self):
+    def get_ip(self):
         """Gets current external IP from api.ipify.org and sets self.current_ip"""
         try:
             return get_ip_only()
-        except (ReqConError, ConnectionError) as e:
+        except (RequestException, ConnectionError) as e:
             fh.log("Connection Error. Could not reach api.ipify.org", "warning")
             self.user.send_notification(msg_type="error", error=e)
 
@@ -177,9 +158,6 @@ class IPChecker:
             log_msg = "Newly recorded IP: %s" % self.user.previous_ip
             fh.log(log_msg, "info")
             fh.save_user(self.user)
-        finally:
-            if fh.op_sys == "pos" and os.geteuid() == 0:
-                fh.set_permissions(fh.user_file)
 
             # Send outbox emails:
             if self.user.outbox:
@@ -190,75 +168,65 @@ class IPChecker:
             fh.clear_logs()
 
     def arg_parse(self, opts):
-        """Parses command line options: e.g. "python -m domains_api --help" """
-        for opt, arg in opts:
-            if opt in {"-i", "--ip"}:
-                print(
-                    """
-[Domains API] Current external IP: %s
+        """Parses command line options: e.g. "domains-api --ip" """
+        if opts.ip:
+            print(
                 """
-                    % get_ip_only()
-                )
-            if opt in {"-h", "--help"}:
-                print(
-                    """
-domains-api help manual (command line options):
-```````````````````````````````````````````````````````````````````````````````````````
-domains-api                         | set up /or check ip, change if necessary
-domains-api -h --help               | show this help manual
-domains-api -i --ip                 | show current external IP address
-domains-api -f --force              | force domains API call, necessary or not
-domains-api -e --email              | email set up wizard
-domains-api -n --notifications      | toggle email notification settings
-domains-api -d --delete_user        | delete current email/domains profile
-domains-api -l --load_user <path>   | load email/domains profile from file
+[Domains API] Current external IP: %s
+            """
+                % get_ip_only()
+            )
 
-User profile is stored as "../site-packages/domains_api/domains.user"
-"""
-                )
+        elif opts.delete_user:
+            fh.delete_user()
 
-            elif opt in {"-d", "--delete"}:
-                fh.delete_user()
+        elif opts.email:
+            self.user.set_email()
+            fh.save_user(self.user)
+            fh.log("Notification settings changed", "info")
 
-            elif opt in {"-e", "--email"}:
+        elif opts.load_user:
+            if (
+                input("Are you sure you want to load a new user? [Y/n] ").lower()
+                == "n"
+            ):
+                return
+            self.user = fh.load_user(opts.load_user)
+            fh.save_user(self.user)
+            fh.log("New user loaded", "info")
+
+        elif opts.notify:
+            n_options = {"Y": "[all changes]", "e": "[errors only]", "n": "[none]"}
+            arg_hash = {
+                "all": 'Y',
+                "errors": 'e',
+                "off": 'n'
+            }
+            options_iter = cycle(n_options.keys())
+            for option in options_iter:
+                if self.user.notifications == option:
+                    break
+            self.user.notifications = arg_hash.get(opts.notify) or next(options_iter)
+            fh.save_user(self.user)
+            log_msg = (
+                "Notification settings changed to %s"
+                % n_options[self.user.notifications]
+            )
+            fh.log(log_msg, "info")
+            if (
+                self.user.notifications in {"Y", "e"}
+                and not self.user.gmail_address
+            ):
+                fh.log("No email user set, running email set up wizard...", "info")
                 self.user.set_email()
                 fh.save_user(self.user)
-                fh.log("Notification settings changed", "info")
 
-            elif opt in {"-l", "--load_user"}:
-                if (
-                    input("Are you sure you want to load a new user? [Y/n] ").lower()
-                    == "n"
-                ):
-                    return
-                self.user = fh.load_user(arg)
-                fh.save_user(self.user)
-                fh.log("New user loaded", "info")
-
-            elif opt in {"-n", "--notifications"}:
-                n_options = {"Y": "[all changes]", "e": "[errors only]", "n": "[none]"}
-                options_iter = cycle(n_options.keys())
-                for option in options_iter:
-                    if self.user.notifications == option:
-                        break
-                self.user.notifications = next(options_iter)
-                fh.save_user(self.user)
-                log_msg = (
-                    "Notification settings changed to %s"
-                    % n_options[self.user.notifications]
-                )
-                fh.log(log_msg, "info")
-                if (
-                    self.user.notifications in {"Y", "e"}
-                    and not self.user.gmail_address
-                ):
-                    fh.log("No email user set, running email set up wizard...", "info")
-                    self.user.set_email()
-                    fh.save_user(self.user)
-
-            elif opt in {"-f", "--force"}:
-                fh.log("***Forcing API call***", "info")
-                self.changed = True
+        elif opts.force:
+            fh.log("***Forcing API call***", "info")
+            if opts.force is not True:
+                self.current_ip = opts.force
+                fh.log(f"Using IP: {opts.force}", "info")
+            self.changed = True
 
 
 if __name__ == "__main__":
