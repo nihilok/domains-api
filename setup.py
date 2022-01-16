@@ -10,7 +10,7 @@ classifiers = [
 
 setup(
     name="domains-api",
-    version="0.2.9",
+    version=open('version.txt').read().strip(),
     description="Auto-updates dynamic DNS rules on Google Domains (domains.google.com)",
     long_description=open("README.md").read() + "\n\n" + open("CHANGELOG.txt").read(),
     long_description_content_type="text/markdown",

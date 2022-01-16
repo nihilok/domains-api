@@ -1,1 +1,2 @@
-__VERSION__ = "0.2.9"
+with open('version.txt', 'r') as f:
+    __VERSION__ = f.read().strip()
