@@ -209,7 +209,7 @@ class IPChecker:
             arg_hash = {
                 "all": 'Y',
                 "errors": 'e',
-                "none": 'n'
+                "off": 'n'
             }
             options_iter = cycle(n_options.keys())
             for option in options_iter:
