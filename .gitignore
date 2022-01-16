@@ -1,2 +1,5 @@
-/.domains.user
 /domains-api.log
+/.idea/
+domains.user
+/domains_api.egg-info/
+/domains_api/__pycache__/
