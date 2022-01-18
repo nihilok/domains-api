@@ -55,6 +55,8 @@ class IPChanger(IPChecker):
             _response = response.split(" ")
             if "good" in _response:
                 self.user.send_notification(self.current_ip)
+                log_msg = f"IP changed successfully to {self.current_ip}"
+                fh.log(log_msg, "info")
             elif "nochg" in _response:
                 log_msg = "No change to IP"
                 fh.log(log_msg, "info")
