@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+0.2.12 (22/01/2022)
+-------------------
+- better fix for version file not found
+- add version option to args
+- add -D --domain opt to view domain
+
 0.2.10.1 (16/01/2022)
 -------------------
 - hotfix for version file not found

@@ -1,5 +1,5 @@
 import argparse
-from .constants import __VERSION__
+from domains_api.constants import __VERSION__
 
 
 class OptionalAction(argparse.Action):
@@ -48,6 +48,12 @@ parser.add_argument(
     help="rerun user setup wizard (runs automatically if no user is found)",
 )
 parser.add_argument(
+    "-D",
+    "--domain",
+    action="store_true",
+    help="rerun user setup wizard (runs automatically if no user is found)",
+)
+parser.add_argument(
     "-n",
     "--notify",
     action=OptionalAction,
@@ -55,3 +61,13 @@ parser.add_argument(
     choices=["all", "errors", "off"],
     help="toggle notifications for all events, errors only or off.",
 )
+parser.add_argument(
+    "-v",
+    "--version",
+    action="store_true",
+    help="show the current version",
+)
+
+
+if __name__ == "__main__":
+    parser.print_help()

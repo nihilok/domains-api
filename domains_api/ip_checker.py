@@ -99,7 +99,6 @@ class BaseUser:
 
 
 class IPChecker:
-
     def __init__(self, argv=None, user_type=BaseUser):
         """Check for command line arguments, load/create User instance,
         check previous IP address against current external IP, and change via the API if different."""
@@ -109,7 +108,8 @@ class IPChecker:
         if [
             arg
             for arg in sys.argv
-            if arg in {"-h", "--help", "-i", "--ip", "-l", "--load_user"}
+            if arg
+            in {"-h", "--help", "-i", "--ip", "-l", "--load_user", "-v", "--version"}
         ]:
             self.get_opts(argv)
             return
@@ -169,6 +169,7 @@ class IPChecker:
 
     def arg_parse(self, opts):
         """Parses command line options: e.g. "domains-api --ip" """
+
         if opts.ip:
             print(
                 """
@@ -186,10 +187,7 @@ class IPChecker:
             fh.log("Notification settings changed", "info")
 
         elif opts.load_user:
-            if (
-                input("Are you sure you want to load a new user? [Y/n] ").lower()
-                == "n"
-            ):
+            if input("Are you sure you want to load a new user? [Y/n] ").lower() == "n":
                 return
             self.user = fh.load_user(opts.load_user)
             fh.save_user(self.user)
@@ -197,11 +195,7 @@ class IPChecker:
 
         elif opts.notify:
             n_options = {"Y": "[all changes]", "e": "[errors only]", "n": "[none]"}
-            arg_hash = {
-                "all": 'Y',
-                "errors": 'e',
-                "off": 'n'
-            }
+            arg_hash = {"all": "Y", "errors": "e", "off": "n"}
             options_iter = cycle(n_options.keys())
             for option in options_iter:
                 if self.user.notifications == option:
@@ -213,10 +207,7 @@ class IPChecker:
                 % n_options[self.user.notifications]
             )
             fh.log(log_msg, "info")
-            if (
-                self.user.notifications in {"Y", "e"}
-                and not self.user.gmail_address
-            ):
+            if self.user.notifications in {"Y", "e"} and not self.user.gmail_address:
                 fh.log("No email user set, running email set up wizard...", "info")
                 self.user.set_email()
                 fh.save_user(self.user)
@@ -227,6 +218,12 @@ class IPChecker:
                 self.current_ip = opts.force
                 fh.log(f"Using IP: {opts.force}", "info")
             self.changed = True
+
+        elif opts.version:
+            print(__VERSION__)
+
+        elif opts.domain:
+            print(self.user.domain)
 
 
 if __name__ == "__main__":
