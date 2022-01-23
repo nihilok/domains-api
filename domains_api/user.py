@@ -82,7 +82,7 @@ class User:
 
             elif msg_type == "error":
                 msg.set_content(f"Error with {self.domain}'s IPChanger: ({error})!\n{datetime.now().isoformat()}")
-                msg["Subject"] = "IPCHANGER ERROR!"
+                msg["Subject"] = "IP CHANGER ERROR!"
 
         try:
             server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
