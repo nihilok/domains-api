@@ -40,8 +40,11 @@ class IPChanger:
 
     fh = FileHandlers()
 
-    def __init__(self):
+    def __init__(self, argv: Optional[list[str]] = None, cli: bool = False):
         self.user: Optional[User] = None
+        self.changed: bool = False
+        if argv is not None:
+            self.parse_args(argv)
 
     def load_user(self, cli=False):
         try:
@@ -58,13 +61,25 @@ class IPChanger:
 
     def check_ip(self):
         self.check_user()
+        if self.get_ip() != self.user.last_ip:
+            self.changed = True
 
-    def call_api(self):
-        pass
+    def call_api(self, force=False):
+        if self.changed or force:
+            pass
 
     def check_user(self):
         if self.user is None:
             raise UserNotSetupException
+
+    def parse_args(self, argv: list[str]):
+        opts = parser.parse_args(argv)
+        if {'-l', '--load-user', '-i', '--ip'}.difference(argv):
+            self.load_user()
+        if opts.ip:
+            print(self.get_ip())
+        if opts.load_user:
+            pass
 
     def cli_user_setup(self):
         print("Performing user profile setup wizard....")
