@@ -10,7 +10,7 @@ classifiers = [
 
 setup(
     name="domains-api",
-    version=open('domains_api/version.txt').read().strip(),
+    version=open("domains_api/version.txt").read().strip(),
     description="Auto-updates dynamic DNS rules on Google Domains (domains.google.com)",
     long_description=open("README.md").read() + "\n\n" + open("CHANGELOG.txt").read(),
     long_description_content_type="text/markdown",
@@ -21,6 +21,6 @@ setup(
     keywords="",
     packages=find_packages(),
     include_package_data=True,
-    install_requires=["requests"],
-    scripts=["bin/domains-api"],
+    install_requires=["requests", "cryptography"],
+    scripts=["bin/domains"],
 )

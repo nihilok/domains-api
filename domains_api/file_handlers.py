@@ -1,48 +1,36 @@
 import logging
+from logging.handlers import RotatingFileHandler
 import pickle
 import sys
 import os
 from pathlib import Path
+from typing import Optional
 
 
 class FileHandlers:
-    def __init__(self):
+    def __init__(self, path: Optional[str] = None):
         self.log_level = self.set_log_level()
-        self.path, self.op_sys = self.file_handling()
+        self.path, self.op_sys = self.file_handling(path)
         self.user_file = os.path.abspath(self.path / "domains.user")
-        self.log_file = os.path.abspath(self.path / "domains.log")
+        self.log_file = str(os.path.abspath(self.path / "domains.log"))
         if not os.path.exists(self.log_file) or not os.path.exists(self.user_file):
-            try:
-                self.make_directories()
-            except (PermissionError, FileNotFoundError, KeyError) as e:
-                print("Run with sudo first time to set permissions")
-                raise e
+            self.make_directories()
         self.sys_log = self.initialize_loggers()
 
     @staticmethod
-    def file_handling():
+    def file_handling(path: Optional[str] = None):
         if os.name == "nt":
-            path = "domains-api"
+            path = path or "domains"
             path = Path(os.getenv("LOCALAPPDATA")) / path
             op_sys = "nt"
         else:
-            path = Path(os.path.abspath(os.getenv("HOME"))) / ".domains-api"
+            path = path or ".domains"
+            path = Path(os.path.abspath(os.getenv("HOME"))) / path
             op_sys = "pos"
         return path, op_sys
 
     def make_directories(self):
         os.makedirs(self.path, exist_ok=True)
-
-    def set_permissions(self, path, gid=33):
-        try:
-            os.chown(path, int(os.environ["SUDO_GID"]), gid)
-            self.file_or_dir(path)
-        except KeyError:
-            try:
-                os.chown(path, int(os.getuid()), gid)
-                self.file_or_dir(path)
-            except PermissionError as e:
-                raise e
 
     @staticmethod
     def file_or_dir(path):
@@ -52,7 +40,7 @@ class FileHandlers:
             os.chmod(path, 0o665)
 
     def initialize_loggers(self):
-        sys_log = logging.getLogger("Domains API")
+        sys_log = logging.getLogger("Domains DDNS API")
         if self.log_level == "debug":
             level = logging.DEBUG
         elif self.log_level == "warning":
@@ -60,7 +48,13 @@ class FileHandlers:
         else:
             level = logging.INFO
         sys_log.setLevel(level)
-        fh = logging.FileHandler(self.log_file)
+        fh = RotatingFileHandler(
+            self.log_file,
+            mode="a",
+            maxBytes=100 * 1024,
+            backupCount=2,
+            encoding=None,
+        )
         sh = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter(
             "[%(name)s][%(asctime)s][%(levelname)s] %(message)s",
