@@ -54,6 +54,7 @@ class IPChanger:
             if (ip := self.get_ip()) != self.user.last_ip:
                 if self.parse_api_response(self.call_api(ip)):
                     self.user.last_ip = ip
+                    self.fh.save_user(self.user)
         except Exception as e:
             self.user.send_notification(self.user.last_ip, "error", e.__str__())
 
