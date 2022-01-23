@@ -3,3 +3,4 @@
 domains.user
 /domains_api.egg-info/
 /domains_api/__pycache__/
+/dev_venv/

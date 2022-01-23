@@ -22,7 +22,7 @@ parser.add_argument(
     metavar="<file>",
 )
 parser.add_argument(
-    "-d",
+    "-D",
     "--delete-user",
     action="store_true",
     help="delete current user data file (~/.domains-api/domains.user)",
@@ -42,7 +42,7 @@ parser.add_argument(
     help="run email setup wizard",
 )
 parser.add_argument(
-    "-D",
+    "-d",
     "--domain",
     action="store_true",
     help="show the current domain",

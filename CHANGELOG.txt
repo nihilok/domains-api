@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+0.3 (24/01/2022)
+-------------------
+- refactored and optimised
+- password encryption
+- rotating log file handler
+
 0.2.14 (23/01/2022)
 -------------------
 - optimise size
