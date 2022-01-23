@@ -19,7 +19,7 @@ class IPChanger:
         self.cli = cli
         if argv:
             self.parse_args(argv)
-        if self.cli:
+        elif self.cli:
             self.run()
 
     def run(self):
