@@ -37,7 +37,7 @@ class User:
 
     def set_email(self, email: str, password: bytes):
         if not email:
-            self.email_notifications = 'n'
+            self.email_notifications = "n"
             return
         self.gmail_address = email
         self.gmail_app_password = password
@@ -75,11 +75,15 @@ class User:
             msg["To"] = self.gmail_address
 
             if ip and msg_type == "success" and self.email_notifications != "e":
-                msg.set_content(f"IP for {self.domain} has changed! New IP: {ip}\n{datetime.now().isoformat()}")
+                msg.set_content(
+                    f"IP for {self.domain} has changed! New IP: {ip}\n{datetime.now().isoformat()}"
+                )
                 msg["Subject"] = "Your IP has changed!"
 
             elif msg_type == "error":
-                msg.set_content(f"Error with {self.domain}'s IPChanger: ({error})!\n{datetime.now().isoformat()}")
+                msg.set_content(
+                    f"Error with {self.domain}'s IPChanger: ({error})!\n{datetime.now().isoformat()}"
+                )
                 msg["Subject"] = "IP CHANGER ERROR!"
 
         try:
@@ -102,4 +106,3 @@ class User:
         except Exception:
             if msg is not None:
                 self.outbox.append(msg)
-
