@@ -1,4 +1,4 @@
-# Google Domains API Client
+# Google Domains DDNS API Client
 To facilitate running a home web server behind a router without a static IP, this package checks to see if your external IP has changed and automatically updates your Dynamic DNS rules on Google Domains, via the API; also notifies user by email if required.
 
 ### Installation (Python 3.6+):
@@ -23,7 +23,7 @@ If you choose to receive email notifications, you will be asked to input your gm
 
 On **Windows** you can use Task Scheduler; on **Linux/Mac**, add a line to your crontab and you can choose the frequency of the checks. An example hourly cron job would look like this:
 
-`0 * * * * domains-api >> ~/cron.log 2>&1`
+`0 * * * * domains-api >> /dev/null 2>&1`
 
 _assumes package is installed in global scope; otherwise, use command `path/to/env/bin/python3 -m domains_api`_
 
@@ -31,11 +31,9 @@ If reducing downtime is essential, you could increase the frequency of checks to
 
 `*/1 * * * * ...etc`
 
-On Google Domains the default TTL for Dynamic DNS is 1 minute, so checks should not need to be more frequent than this, but unless you expect your external IP to change very frequently, such regular cron jobs might be a slight waste of resources; even so, the script is very light weight and usually only takes just over a second to run normally on a Raspberry Pi 3 Ubuntu server.
+On Google Domains the default TTL for Dynamic DNS is 1 minute, so checks should never need to be more frequent than this, but unless you expect your external IP to change very frequently, such regular cron jobs might be a slight waste of resources; even so, the script is very light-weight and usually only takes just over a second to run normally on a Raspberry Pi 3 Ubuntu server.
 
-Check `~/cron.log` if the script does not run as expected, or to see when the IP was last checked.
-
-The logs are written to both `../site_packages/domains_api/domains.log` (posix) or `%LOCALAPPDATA%/domains-api/domains.log` (win), and stdout, so that they also appear in the terminal & crontab log.
+The logs are written to both `~/.domains_api/domains.log` (posix) or `%LOCALAPPDATA%/domains-api/domains.log` (win), and stdout, so that they also appear in the terminal & crontab log.
 
 After initial setup, the script takes care of everything: if your IP has changed since you last ran it, it will update your Dynamic DNS rule on domains.google.com.
 
@@ -45,18 +43,7 @@ If you forget your IP or need to check it for any reason, running:
 
 ...will log your current external IP to the terminal without doing anything else.
 
-Other options include:
- 
-    domains-api                         | set up /or check ip, change if necessary
-    domains-api -h --help               | show this help manual
-    domains-api -i --ip                 | show current external IP address
-    domains-api -f --force              | force domains API call, necessary or not
-    domains-api -e --email              | email set up wizard
-    domains-api -n --notifications      | toggle email notification settings
-    domains-api -d --delete_user        | delete current email/domains profile
-    domains-api -l --load_user <path>   | load email/domains profile from file
-
-    *User file is saved as "../site-packages/domains_api/domains.user". See same location for log.
+Check `domains-api -h` for more command line options.
 
 In order to use without a domain, run:
 
@@ -95,4 +82,4 @@ class MainConfig(AppConfig):
         from ip_changer import ip_changer
         ip_changer.start()
 ```
-Check `/var/log/apache2/error.log` or `/var/log/nginx/error.log` or your webserver log location (might be logged as wsgi errors) and `..site-packages/domains_api/domains.log` to see everything is working as expected.
+Check `/var/log/apache2/error.log` or `/var/log/nginx/error.log` or your webserver log location (might be logged as wsgi errors) and `~/.domains_api/domains.log` to check everything is working as expected.
