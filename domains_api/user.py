@@ -34,6 +34,9 @@ class User:
         self.email_notifications = n
 
     def set_email(self, email: str, password: bytes):
+        if not email:
+            self.email_notifications = 'n'
+            return
         self.gmail_address = email
         self.gmail_app_password = password
 
