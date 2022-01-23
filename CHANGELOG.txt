@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+0.2.13 (23/01/2022)
+-------------------
+- optimise size
+
 0.2.12 (22/01/2022)
 -------------------
 - better fix for version file not found

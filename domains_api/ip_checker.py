@@ -9,9 +9,9 @@ from itertools import cycle
 from requests import get
 from requests.exceptions import RequestException
 
-from . import __VERSION__
-from .file_handlers import FileHandlers
-from .arg_parser import parser
+from domains_api import __VERSION__
+from domains_api.file_handlers import FileHandlers
+from domains_api.arg_parser import parser
 
 
 fh = FileHandlers()
@@ -104,6 +104,7 @@ class IPChecker:
         check previous IP address against current external IP, and change via the API if different."""
         self.changed = False
         self.current_ip = self.get_ip()
+        self.nginx = False
 
         if [
             arg
@@ -171,12 +172,16 @@ class IPChecker:
         """Parses command line options: e.g. "domains-api --ip" """
 
         if opts.ip:
-            print(
-                """
-[Domains API] Current external IP: %s
-            """
-                % get_ip_only()
-            )
+            print(get_ip_only())
+            return
+
+        elif opts.version:
+            print(__VERSION__)
+            return
+
+        elif opts.domain:
+            print(self.user.domain)
+            return
 
         elif opts.delete_user:
             fh.delete_user()
@@ -219,12 +224,9 @@ class IPChecker:
                 fh.log(f"Using IP: {opts.force}", "info")
             self.changed = True
 
-        elif opts.version:
-            print(__VERSION__)
-
-        elif opts.domain:
-            print(self.user.domain)
+        elif opts.nginx:
+            return self.current_ip, get_ip_only()
 
 
 if __name__ == "__main__":
-    IPChecker(sys.argv[1:])
+    IPChecker(['--nginx'])
