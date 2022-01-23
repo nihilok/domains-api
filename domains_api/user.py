@@ -1,9 +1,11 @@
 import smtplib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from email.message import EmailMessage
 from getpass import getpass
 from itertools import cycle
-from typing import Optional
+from typing import Optional, List
+
+import outbox as outbox
 
 from domains_api.encrypter import encrypter
 
@@ -14,7 +16,8 @@ class User:
     api_key: str
     api_sec: str
     email_notifications: str
-    BASE_URL = "@domains.google.com/nic/update?hostname="
+    BASE_URL: str = "@domains.google.com/nic/update?hostname="
+    outbox: List[EmailMessage] = field(default_factory=list)
     gmail_address: Optional[str] = None
     gmail_app_password: Optional[bytes] = None
     last_ip: Optional[str] = None
@@ -47,7 +50,7 @@ class User:
             encrypter.encrypt(getpass("Gmail (app) password: ").encode()),
         )
 
-    def toggle_notifications(self, option: Optional[str] = None):
+    def toggle_notifications(self, option: Optional[str] = None) -> str:
         """Toggle notifications or set to given value"""
         n_options = {"Y": "[all changes]", "e": "[errors only]", "n": "[none]"}
         arg_hash = {"all": "Y", "errors": "e", "off": "n"}
@@ -59,28 +62,40 @@ class User:
         return n_options[self.email_notifications]
 
     def send_notification(
-        self, ip=None, msg_type="success", error=None, outbox_msg=None
+        self, ip=None, msg_type="success", error=None
     ):
         """Notify user via email if IP change is made successfully or if API call fails."""
         if self.email_notifications == "n":
             return
+
         msg = EmailMessage()
         msg["From"] = self.gmail_address
         msg["To"] = self.gmail_address
+
         if ip and msg_type == "success" and self.email_notifications != "e":
             msg.set_content(f"IP for {self.domain} has changed! New IP: {ip}")
             msg["Subject"] = "Your IP has changed!"
+
         elif msg_type == "error":
             msg.set_content(f"Error with {self.domain}'s IPChanger: ({error})!")
             msg["Subject"] = "IPCHANGER ERROR!"
-        elif outbox_msg:
-            msg = outbox_msg
 
-        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-        server.ehlo()
-        server.login(
-            self.gmail_address, encrypter.decrypt(self.gmail_app_password).decode()
-        )
-        server.send_message(msg)
-        server.close()
-        return True
+        try:
+            server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+            server.ehlo()
+            server.login(
+                self.gmail_address, encrypter.decrypt(self.gmail_app_password).decode()
+            )
+
+            box = self.outbox
+            for m in box:
+                server.send_message(m)
+                self.outbox.remove(m)
+
+            server.send_message(msg)
+            server.close()
+            return True
+
+        except Exception:
+            self.outbox.append(msg)
+
