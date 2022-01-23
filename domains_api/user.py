@@ -1,5 +1,6 @@
 import smtplib
 from dataclasses import dataclass, field
+from datetime import datetime
 from email.message import EmailMessage
 from getpass import getpass
 from itertools import cycle
@@ -62,23 +63,26 @@ class User:
         return n_options[self.email_notifications]
 
     def send_notification(
-        self, ip=None, msg_type="success", error=None
+        self, ip=None, msg_type="success", error=None, clear: bool = False
     ):
         """Notify user via email if IP change is made successfully or if API call fails."""
         if self.email_notifications == "n":
             return
 
-        msg = EmailMessage()
-        msg["From"] = self.gmail_address
-        msg["To"] = self.gmail_address
+        msg = None
 
-        if ip and msg_type == "success" and self.email_notifications != "e":
-            msg.set_content(f"IP for {self.domain} has changed! New IP: {ip}")
-            msg["Subject"] = "Your IP has changed!"
+        if not clear:
+            msg = EmailMessage()
+            msg["From"] = self.gmail_address
+            msg["To"] = self.gmail_address
 
-        elif msg_type == "error":
-            msg.set_content(f"Error with {self.domain}'s IPChanger: ({error})!")
-            msg["Subject"] = "IPCHANGER ERROR!"
+            if ip and msg_type == "success" and self.email_notifications != "e":
+                msg.set_content(f"IP for {self.domain} has changed! New IP: {ip}\n{datetime.now().isoformat()}")
+                msg["Subject"] = "Your IP has changed!"
+
+            elif msg_type == "error":
+                msg.set_content(f"Error with {self.domain}'s IPChanger: ({error})!\n{datetime.now().isoformat()}")
+                msg["Subject"] = "IPCHANGER ERROR!"
 
         try:
             server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
@@ -92,10 +96,12 @@ class User:
                 server.send_message(m)
                 self.outbox.remove(m)
 
-            server.send_message(msg)
+            if msg is not None:
+                server.send_message(msg)
             server.close()
             return True
 
         except Exception:
-            self.outbox.append(msg)
+            if msg is not None:
+                self.outbox.append(msg)
 
