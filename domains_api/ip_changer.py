@@ -113,6 +113,9 @@ class IPChanger:
             self.fh.save_user(self.user)
             self.fh.log("New user loaded", "info")
             return
+        if opts.profile_wizard:
+            self.user_setup_wizard()
+            return
         self.load_user()
         if opts.domain:
             print(self.user.domain)
