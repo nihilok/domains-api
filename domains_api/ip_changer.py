@@ -39,11 +39,12 @@ class IPChanger:
             if not isinstance(user, User):
                 raise UserInstanceNotRecognised
             self.user = user
+            self.user.send_notification(clear=True)
         except Exception:
             self.check_user()
 
     @staticmethod
-    def get_ip():
+    def get_ip() -> str:
         return get("https://api.ipify.org").text
 
     def check_ip(self):
@@ -51,14 +52,15 @@ class IPChanger:
         self.check_user()
         try:
             if (ip := self.get_ip()) != self.user.last_ip:
-                self.parse_api_response(self.call_api(ip))
+                if self.parse_api_response(self.call_api(ip)):
+                    self.user.last_ip = ip
         except Exception as e:
             self.user.send_notification(self.user.last_ip, "error", e.__str__())
 
-    def call_api(self, ip: str):
+    def call_api(self, ip: str) -> str:
         return post(f"{self.user.req_url}&myip={ip}").text
 
-    def parse_api_response(self, response: str):
+    def parse_api_response(self, response: str) -> bool:
         """Parse response from Google Domains API call"""
         log_msg = "DDNS API response: %s" % response
         self.fh.log(log_msg, "info")
@@ -68,12 +70,13 @@ class IPChanger:
             self.user.send_notification(self.user.last_ip)
             log_msg = f"IP changed successfully to {self.user.last_ip}"
             self.fh.log(log_msg, "info")
-        elif "nochg" in response:
+            return True
+        if "nochg" in response:
             log_msg = "No change to IP"
             self.fh.log(log_msg, "info")
-
+            return True
         # Unsuccessful requests:
-        elif response in {"nohost", "notfqdn"}:
+        if response in {"nohost", "notfqdn"}:
             msg = (
                 "The hostname does not exist, is not a fully qualified domain"
                 " or does not have Dynamic DNS enabled. The script will not be "
@@ -88,6 +91,7 @@ class IPChanger:
                 "Hint: run `domains-test -p` to run setup wizard",
                 "warning",
             )
+        return False
 
     def check_user(self):
         if self.user is None:
