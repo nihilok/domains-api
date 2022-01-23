@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(
     description=f"Domains DDNS API version {__VERSION__}", prog="domains-api"
 )
 parser.add_argument(
-    "-i", "--ip", action="store_true", help="get current external IP address"
+    "-i", "--ip", action="store_true", help="show current external IP address"
 )
 parser.add_argument(
     "-l",
@@ -42,14 +42,14 @@ parser.add_argument(
     help="run email setup wizard",
 )
 parser.add_argument(
-    "-p",
-    "--profile-wizard",
-    action="store_true",
-    help="rerun user setup wizard (runs automatically if no user is found)",
-)
-parser.add_argument(
     "-D",
     "--domain",
+    action="store_true",
+    help="show the current domain",
+)
+parser.add_argument(
+    "-p",
+    "--profile-wizard",
     action="store_true",
     help="rerun user setup wizard (runs automatically if no user is found)",
 )
