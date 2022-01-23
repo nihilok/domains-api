@@ -6,8 +6,6 @@ from getpass import getpass
 from itertools import cycle
 from typing import Optional, List
 
-import outbox as outbox
-
 from domains_api.encrypter import encrypter
 
 
