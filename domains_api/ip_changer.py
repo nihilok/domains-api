@@ -89,7 +89,7 @@ class IPChanger:
         else:
             self.fh.log(
                 "Could not authenticate with current credentials\n"
-                "Hint: run `domains-test -p` to run setup wizard",
+                "Hint: run `domains -p` to run setup wizard",
                 "warning",
             )
         return False
@@ -139,7 +139,7 @@ class IPChanger:
             if opts.force is not True:
                 self.user.last_ip = opts.force
                 self.fh.log(f"Using IP: {opts.force}", "info")
-            self.call_api(self.user.last_ip)
+            self.parse_api_response(self.call_api(self.user.last_ip))
 
     def user_setup_wizard(self):
         """Set up user profile from command line input"""

@@ -51,13 +51,18 @@ class User:
 
     def toggle_notifications(self, option: Optional[str] = None) -> str:
         """Toggle notifications or set to given value"""
-        n_options = {"Y": "[all changes]", "e": "[errors only]", "n": "[none]"}
-        arg_hash = {"all": "Y", "errors": "e", "off": "n"}
-        options_iter = cycle(n_options.keys())
-        for option in options_iter:
-            if self.email_notifications == option:
-                break
-        self.email_notifications = arg_hash.get(option) or next(options_iter)
+        n_options = {"y": "[all changes]", "e": "[errors only]", "n": "[none]"}
+        arg_hash = {"all": "y", "errors": "e", "off": "n"}
+        options_iter = cycle(opt.lower() for opt in n_options.keys())
+        if option is not None and (opt := arg_hash.get(option)):
+            self.email_notifications = opt
+        else:
+            limit = len(n_options)
+            for key in options_iter:
+                if self.email_notifications.lower() == key or limit == 0:
+                    break
+                limit -= 1
+            self.email_notifications = next(options_iter)
         return n_options[self.email_notifications]
 
     def send_notification(
