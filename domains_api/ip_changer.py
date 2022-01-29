@@ -64,24 +64,25 @@ class IPChanger:
 
     def parse_api_response(self, response: str) -> bool:
         """Parse response from Google Domains API call"""
-        log_msg = "DDNS API response: %s" % response
-        self.fh.log(log_msg, "info")
-
         keys = api_responses.keys()
         for key in keys:
             if key in response:
                 response_data = api_responses[key]
                 break
-        msg = response_data.get("message")
-        if msg is not None:
-            self.fh.log(msg, "info")
-        help_text = f'{key}: {response_data["help_text"]}'
+        help_text = f'API response: {response}: {response_data["help_text"]}'
         status = response_data["status"]
         if not status:
-            help_text += " ...see https://support.google.com/domains/answer/6147083?hl=en-CA "
-                "for API documentation"
+            help_text += " ...see https://support.google.com/domains/answer/6147083?hl=en-CA "\
+                         "for API documentation"
         log_type = "info" if status else "warning"
         self.fh.log(help_text, log_type)
+        if 'good' in response:
+            ip = response.split()[1]
+            self.user.send_notification(ip)
+        elif 'nochg' in response:
+            pass
+        else:
+            self.user.send_notification(type="error", error=f"{response}: {help_text}")
         return not not status
 
     def check_user(self):
