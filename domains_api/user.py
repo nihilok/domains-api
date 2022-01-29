@@ -92,22 +92,8 @@ class User:
                 msg["Subject"] = "IP CHANGER ERROR!"
 
         try:
-            server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-            server.ehlo()
-            server.login(
-                self.gmail_address, encrypter.decrypt(self.gmail_app_password).decode()
-            )
-
-            box = self.outbox
-            for m in box:
-                server.send_message(m)
-                self.outbox.remove(m)
-
-            if msg is not None:
-                server.send_message(msg)
-            server.close()
-            return True
-
+            send_emails(msg, self.outbox)
+            
         except Exception:
             if msg is not None:
                 self.outbox.append(msg)
