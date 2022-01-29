@@ -117,6 +117,10 @@ class IPChanger:
             return
         if opts.email:
             self.user.email_wizard()
+            if not opts.test_email:
+                return
+        if opts.test_email:
+            self.user.send_test_message()
             return
         if opts.notify:
             notification_state = self.user.toggle_notifications(opts.notify)
