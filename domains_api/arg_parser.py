@@ -4,7 +4,7 @@ from domains_api.constants import __VERSION__
 
 class OptionalAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        if values is None:
+        if not values:
             values = True
         setattr(namespace, self.dest, values)
 

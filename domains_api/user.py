@@ -111,3 +111,7 @@ class User:
         except Exception:
             if msg is not None:
                 self.outbox.append(msg)
+
+    @classmethod
+    def update_user_instance(cls, old_user_instance):
+        return User(**old_user_instance.__dict__)

@@ -1,3 +1,4 @@
+import re
 from getpass import getpass
 from typing import Optional, List
 
@@ -38,7 +39,7 @@ class IPChanger:
             user = self.fh.load_user(user_file or self.fh.user_file)
             if not isinstance(user, User):
                 raise UserInstanceNotRecognised
-            self.user = user
+            self.user = User.update_user_instance(user)
             self.user.send_notification(clear=True)
         except Exception:
             self.check_user()
@@ -52,9 +53,9 @@ class IPChanger:
         self.check_user()
         try:
             if (ip := self.get_ip()) != self.user.last_ip:
-                if self.parse_api_response(self.call_api(ip)):
-                    self.user.last_ip = ip
-                    self.fh.save_user(self.user)
+                self.user.last_ip = ip
+                self.fh.save_user(self.user)
+                self.parse_api_response(self.call_api(ip))
         except Exception as e:
             self.user.send_notification(self.user.last_ip, "error", e.__str__())
 
@@ -136,9 +137,12 @@ class IPChanger:
             return
         if opts.force:
             self.fh.log("***Forcing API call***", "info")
-            if opts.force is not True:
-                self.user.last_ip = opts.force
-                self.fh.log(f"Using IP: {opts.force}", "info")
+            if type(opts.force) == str:
+                pattern = r"(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})"
+                if re.search(pattern, opts.force):
+                    self.user.last_ip = opts.force
+                    self.fh.log(f"Overriding IP: {opts.force}", "info")
+                    self.fh.save_user(self.user)
             self.parse_api_response(self.call_api(self.user.last_ip))
 
     def user_setup_wizard(self):
