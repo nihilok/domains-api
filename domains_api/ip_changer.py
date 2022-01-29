@@ -125,6 +125,9 @@ class IPChanger:
         if opts.delete_user:
             self.fh.delete_user()
             return
+        if opts.email:
+            self.user.email_wizard()
+            return
         if opts.notify:
             notification_state = self.user.toggle_notifications(opts.notify)
             self.fh.save_user(self.user)

@@ -1,9 +1,10 @@
 Change Log
 ==========
 
-0.3.4 (29/01/2022)
+0.3.5 (29/01/2022)
 -------------------
 - fix force and and regex for valid ip
+- fix ignored email setup option
 
 0.3.3 (24/01/2022)
 -------------------
