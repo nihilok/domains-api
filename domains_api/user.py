@@ -64,6 +64,23 @@ class User:
                 limit -= 1
             self.email_notifications = next(options_iter)
         return n_options[self.email_notifications]
+    
+    def send_emails(self, message: str, outbox=None):
+        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+        server.ehlo()
+        server.login(
+            self.gmail_address, encrypter.decrypt(self.gmail_app_password).decode()
+        )
+
+        box = outbox if outbox is not None else []
+        for m in box:
+            server.send_message(m)
+            self.outbox.remove(m)
+
+        if msg is not None:
+            server.send_message(msg)
+        server.close()
+        return True
 
     def send_notification(
         self, ip=None, msg_type="success", error=None, clear: bool = False
@@ -75,9 +92,7 @@ class User:
         msg = None
 
         if not clear:
-            msg = EmailMessage()
-            msg["From"] = self.gmail_address
-            msg["To"] = self.gmail_address
+            msg = self.create_message()
 
             if ip and msg_type == "success" and self.email_notifications != "e":
                 msg.set_content(
@@ -92,11 +107,24 @@ class User:
                 msg["Subject"] = "IP CHANGER ERROR!"
 
         try:
-            send_emails(msg, self.outbox)
+            self.send_emails(msg, self.outbox)
             
         except Exception:
             if msg is not None:
                 self.outbox.append(msg)
+    
+    def create_message(self):
+        msg = EmailMessage()
+        msg["From"] = self.gmail_address
+        msg["To"] = self.gmail_address
+        msg["Subject"] = "Test Email"
+        content = encrypter.encrypt("Hello, world!".encode())
+        msg.set_content(f'{content*9}')
+        return msg
+
+    def send_test_message(self):
+        msg = self.create_message()
+        self.send_emails(msg)
 
     @classmethod
     def update_user_instance(cls, old_user_instance):
