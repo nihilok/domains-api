@@ -7,7 +7,7 @@ from requests import get, post
 from domains_api.exceptions import UserNotSetup, UserInstanceNotRecognised
 from domains_api.file_handlers import FileHandlers
 from domains_api.arg_parser import parser
-from domains_api.constants import __VERSION__
+from domains_api.constants import __VERSION__, api_responses
 from domains_api.user import User
 
 
@@ -67,33 +67,22 @@ class IPChanger:
         log_msg = "DDNS API response: %s" % response
         self.fh.log(log_msg, "info")
 
-        # Successful request:
-        if "good" in response:
-            self.user.send_notification(self.user.last_ip)
-            log_msg = f"IP changed successfully to {self.user.last_ip}"
-            self.fh.log(log_msg, "info")
-            return True
-        if "nochg" in response:
-            log_msg = "No change to IP"
-            self.fh.log(log_msg, "info")
-            return True
-        # Unsuccessful requests:
-        if response in {"nohost", "notfqdn"}:
-            msg = (
-                "The hostname does not exist, is not a fully qualified domain"
-                " or does not have Dynamic DNS enabled. The script will not be "
-                "able to run until you fix this. See https://support.google.com/domains/answer/6147083?hl=en-CA"
-                " for API documentation"
-            )
-            self.fh.log(msg, "warning")
-            self.user.send_notification(self.user.last_ip, "error", msg)
-        else:
-            self.fh.log(
-                "Could not authenticate with current credentials\n"
-                "Hint: run `domains -p` to run setup wizard",
-                "warning",
-            )
-        return False
+        keys = api_responses.keys()
+        for key in keys:
+            if key in response:
+                response_data = api_responses[key]
+                break
+        msg = response_data.get("message")
+        if msg is not None:
+            self.fh.log(msg, "info")
+        help_text = f'{key}: {response_data["help_text"]}'
+        status = response_data["status"]
+        if not status:
+            help_text += " ...see https://support.google.com/domains/answer/6147083?hl=en-CA "
+                "for API documentation"
+        log_type = "info" if status else "warning"
+        self.fh.log(help_text, log_type)
+        return not not status
 
     def check_user(self):
         if self.user is None:
