@@ -4,8 +4,7 @@ from typing import List, Optional
 
 from requests import get, post
 
-from domains_api import (__VERSION__, FileHandlers, IPChanger, User,
-                         api_responses, parser)
+from domains_api import __VERSION__, FileHandlers, User, api_responses, parser
 from domains_api.exceptions import UserInstanceNotRecognised, UserNotSetup
 
 
