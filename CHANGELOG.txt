@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-0.3.7 (01/02/2022)
+0.3.8 (01/02/2022)
 -------------------
 - add test email function 
 - improve IP parsing for --force

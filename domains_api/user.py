@@ -78,8 +78,8 @@ class User:
             server.send_message(m)
             self.outbox.remove(m)
 
-        if msg is not None:
-            server.send_message(msg)
+        if message is not None:
+            server.send_message(message)
         server.close()
         return True
 
