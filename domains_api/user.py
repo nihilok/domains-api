@@ -37,15 +37,16 @@ class User:
         self.email_notifications = n
 
     def set_email(self, email: str, password: bytes):
-        if not email:
+        if not email or not password:
             self.email_notifications = "n"
             return
         self.gmail_address = email
         self.gmail_app_password = password
+        return True
 
     def email_wizard(self):
         """Set email attributes with encrypted password from command line input"""
-        self.set_email(
+        return self.set_email(
             input("Gmail address: "),
             encrypter.encrypt(getpass("Gmail (app) password: ").encode()),
         )
@@ -125,13 +126,13 @@ class User:
         msg = EmailMessage()
         msg["From"] = self.gmail_address
         msg["To"] = self.gmail_address
-        msg["Subject"] = "Test Email"
         content = encrypter.encrypt("Hello, world!".encode())
         msg.set_content(f"{content*9}")
         return msg
 
     def send_test_message(self, log_fn):
         msg = self.create_message()
+        msg["Subject"] = "Test Message"
         try:
             self.send_emails(msg)
         except Exception as e:

@@ -45,7 +45,7 @@ parser.add_argument(
     "-E",
     "--test-email",
     action="store_true",
-    help="send a test email with current credentials"
+    help="send a test email with current credentials",
 )
 parser.add_argument(
     "-d",

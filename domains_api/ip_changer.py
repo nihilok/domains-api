@@ -40,7 +40,7 @@ class IPChanger:
             if not isinstance(user, User):
                 raise UserInstanceNotRecognised
             self.user = User.update_user_instance(user)
-            self.user.send_notification(clear=True)
+            self.user.send_notification(clear=True, log_fn=self.fh.log)
         except Exception:
             self.check_user()
 
@@ -72,17 +72,21 @@ class IPChanger:
         help_text = f'API response: {response}: {response_data["help_text"]}'
         status = response_data["status"]
         if not status:
-            help_text += " ...see https://support.google.com/domains/answer/6147083?hl=en-CA "\
-                         "for API documentation"
+            help_text += (
+                " ...see https://support.google.com/domains/answer/6147083?hl=en-CA "
+                "for API documentation"
+            )
         log_type = "info" if status else "warning"
         self.fh.log(help_text, log_type)
-        if 'good' in response:
+        if "good" in response:
             ip = response.split()[1]
-            self.user.send_notification(ip)
-        elif 'nochg' in response:
+            self.user.send_notification(ip, log_fn=self.fh.log)
+        elif "nochg" in response:
             pass
         else:
-            self.user.send_notification(type="error", error=f"{response}: {help_text}", log_fn=self.fh.log)
+            self.user.send_notification(
+                type="error", error=f"{response}: {help_text}", log_fn=self.fh.log
+            )
         return not not status
 
     def check_user(self):
@@ -116,7 +120,8 @@ class IPChanger:
             self.fh.delete_user()
             return
         if opts.email:
-            self.user.email_wizard()
+            if self.user.email_wizard():
+                self.fh.save_user(self.user)
             if not opts.test_email:
                 return
         if opts.test_email:
