@@ -1,4 +1,5 @@
 import smtplib
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from email.message import EmailMessage
@@ -64,7 +65,7 @@ class User:
                 limit -= 1
             self.email_notifications = next(options_iter)
         return n_options[self.email_notifications]
-    
+
     def send_emails(self, message: str, outbox=None):
         server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
         server.ehlo()
@@ -83,7 +84,7 @@ class User:
         return True
 
     def send_notification(
-        self, ip=None, msg_type="success", error=None, clear: bool = False
+        self, ip=None, msg_type="success", error=None, clear: bool = False, log_fn=None
     ):
         """Notify user via email if IP change is made successfully or if API call fails."""
         if self.email_notifications == "n":
@@ -108,23 +109,33 @@ class User:
 
         try:
             self.send_emails(msg, self.outbox)
-            
-        except Exception:
+
+        except Exception as e:
+            if log_fn is not None:
+                self.log_errors(e, log_fn)
             if msg is not None:
                 self.outbox.append(msg)
-    
+
+    @staticmethod
+    def log_errors(e, log_fn):
+        log_msg = f"{type(e).__name__}: {str(e)}"
+        log_fn(log_msg, "error")
+
     def create_message(self):
         msg = EmailMessage()
         msg["From"] = self.gmail_address
         msg["To"] = self.gmail_address
         msg["Subject"] = "Test Email"
         content = encrypter.encrypt("Hello, world!".encode())
-        msg.set_content(f'{content*9}')
+        msg.set_content(f"{content*9}")
         return msg
 
-    def send_test_message(self):
+    def send_test_message(self, log_fn):
         msg = self.create_message()
-        self.send_emails(msg)
+        try:
+            self.send_emails(msg)
+        except Exception as e:
+            self.log_errors(e, log_fn)
 
     @classmethod
     def update_user_instance(cls, old_user_instance):

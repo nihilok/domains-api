@@ -72,12 +72,14 @@ class FileHandlers:
         return sys_log
 
     def log(self, msg, level="info"):
-        if level == "info":
+        if level.lower() == "info":
             self.sys_log.info(msg)
-        elif level == "debug":
+        elif level.lower() == "debug":
             self.sys_log.debug(msg)
-        elif level == "warning":
+        elif level.lower() == "warning":
             self.sys_log.warning(msg)
+        elif level.lower() == "error":
+            self.sys_log.error(msg)
 
     def set_log_level(self, level="info"):
         self.log_level = level

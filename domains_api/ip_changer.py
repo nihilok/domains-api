@@ -82,7 +82,7 @@ class IPChanger:
         elif 'nochg' in response:
             pass
         else:
-            self.user.send_notification(type="error", error=f"{response}: {help_text}")
+            self.user.send_notification(type="error", error=f"{response}: {help_text}", log_fn=self.fh.log)
         return not not status
 
     def check_user(self):
@@ -120,7 +120,7 @@ class IPChanger:
             if not opts.test_email:
                 return
         if opts.test_email:
-            self.user.send_test_message()
+            self.user.send_test_message(self.fh.log)
             return
         if opts.notify:
             notification_state = self.user.toggle_notifications(opts.notify)
@@ -136,10 +136,13 @@ class IPChanger:
             self.fh.log("***Forcing API call***", "info")
             if type(opts.force) == str:
                 pattern = r"(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})"
-                if re.search(pattern, opts.force):
+                if re.search(pattern, opts.force.strip()):
                     self.user.last_ip = opts.force
                     self.fh.log(f"Overriding IP: {opts.force}", "info")
                     self.fh.save_user(self.user)
+                else:
+                    print(f"'{opts.force}' is not a recognised IPv4 address")
+                    print("Using last IP")
             self.parse_api_response(self.call_api(self.user.last_ip))
 
     def user_setup_wizard(self):
