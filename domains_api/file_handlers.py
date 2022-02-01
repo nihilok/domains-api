@@ -1,8 +1,8 @@
 import logging
-from logging.handlers import RotatingFileHandler
+import os
 import pickle
 import sys
-import os
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Optional
 

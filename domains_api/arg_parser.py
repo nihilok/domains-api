@@ -1,4 +1,5 @@
 import argparse
+
 from domains_api.constants import __VERSION__
 
 

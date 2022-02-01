@@ -1,14 +1,12 @@
 import re
 from getpass import getpass
-from typing import Optional, List
+from typing import List, Optional
 
 from requests import get, post
 
-from domains_api.exceptions import UserNotSetup, UserInstanceNotRecognised
-from domains_api.file_handlers import FileHandlers
-from domains_api.arg_parser import parser
-from domains_api.constants import __VERSION__, api_responses
-from domains_api.user import User
+from domains_api import (__VERSION__, FileHandlers, IPChanger, User,
+                         api_responses, parser)
+from domains_api.exceptions import UserInstanceNotRecognised, UserNotSetup
 
 
 class IPChanger:
@@ -94,7 +92,7 @@ class IPChanger:
             raise UserNotSetup
 
     def parse_args(self, argv: List[str]):
-        """Parse command line options (domains-ddns -h)"""
+        """Parse command line options (domains -h)"""
         opts = parser.parse_args(argv)
         if opts.ip:
             print(self.get_ip())

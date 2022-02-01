@@ -2,7 +2,6 @@ import os
 
 from cryptography.fernet import Fernet
 
-
 file = os.path.join(os.path.dirname(__file__), "fnet")
 
 if not os.path.exists(file):

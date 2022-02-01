@@ -3,5 +3,4 @@ import sys
 
 from domains_api.ip_changer import IPChanger
 
-
 IPChanger(sys.argv[1:], cli=True)

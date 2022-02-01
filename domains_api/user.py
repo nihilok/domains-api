@@ -1,11 +1,10 @@
 import smtplib
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from email.message import EmailMessage
 from getpass import getpass
 from itertools import cycle
-from typing import Optional, List
+from typing import List, Optional
 
 from domains_api.encrypter import encrypter
 
