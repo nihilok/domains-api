@@ -1,5 +1,7 @@
 import asyncio
 import sys
+
+from domains_api.exceptions import UserException
 from domains_api.ip_changer import IPChanger
 
 
@@ -7,20 +9,20 @@ async def _run_check_log_exceptions():
     checker = IPChanger()
     try:
         checker.run()
+    except UserException as u:
+        raise u
     except Exception as e:
-        checker.fh.log(
-            f"{e.__class__.__name__} {e.__str__()} [{e.__cause__}]", "error"
-        )
+        checker.fh.log(f"{e.__class__.__name__} {e.__str__()} [{e.__cause__}]", "error")
     del checker
 
 
-async def run_at_interval(interval: int):
-    if type(interval) is not int:
+async def run_at_interval(minutes: int):
+    if type(minutes) is not int:
         raise ValueError("interval must be an integer")
-    interval *= 60
+    minutes *= 60
     while True:
         await _run_check_log_exceptions()
-        await asyncio.sleep(interval)
+        await asyncio.sleep(minutes)
 
 
 if __name__ == "__main__":
