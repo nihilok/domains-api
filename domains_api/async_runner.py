@@ -3,12 +3,13 @@ import sys
 from domains_api.ip_changer import IPChanger
 
 checker = IPChanger()
-checker.load_user()
+
 
 async def run_at_interval(interval: int):
     while True:
         checker.run()
         await asyncio.sleep(interval)
+
 
 if __name__ == "__main__":
     try:

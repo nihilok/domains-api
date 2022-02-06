@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+0.4 (07/02/2022)
+-------------------
+- own daemon script (background runner)
+
 0.3.10 (01/02/2022)
 -------------------
 - add test email function 
