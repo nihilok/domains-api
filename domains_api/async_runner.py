@@ -29,5 +29,5 @@ if __name__ == "__main__":
     try:
         asyncio.run(run_at_interval(int(sys.argv[1])))
     except (IndexError, ValueError):
-        print("usage: 'domainsd 60' (check every 60 minutes)")
+        print("usage: 'domainsd 60' (check every 60 minutes)\n'domainsd stop' to stop")
         sys.exit(1)
