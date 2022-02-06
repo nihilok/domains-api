@@ -22,5 +22,5 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=["requests", "cryptography"],
-    scripts=["bin/domains"],
+    scripts=["bin/domains", "bin/domainsd"],
 )
