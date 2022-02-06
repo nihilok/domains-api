@@ -52,3 +52,7 @@ api_responses = {
         "You should not attempt another update until your IP address changes.",
     },
 }
+
+API_RESPONSE_KEYS = api_responses.keys()
+API_RESPONSE_HELP_TEXTS = {key: value["help_text"] for key, value in api_responses}
+API_RESPONSE_STATUSES = {key: value["status"] for key, value in api_responses}
