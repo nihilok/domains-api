@@ -1,3 +1,32 @@
 #!/usr/bin/env bash
 
-python3 -m domains_api.async_runner "$1" > /dev/null &
+RESULT=$(ps aux | grep "python3 -m domains_api" | grep -v grep | awk '{print $2}')
+
+if [[ $1 = "stop" ]]; then
+  if kill "$RESULT"; then
+    echo "daemon stopped"
+  else
+    echo "daemon is not running"
+  fi
+  exit
+else
+  if [[ -z $RESULT ]]; then
+    RE='^[0-9]+$'
+    if [[ $1 =~ $RE ]]; then
+      if [[ $1 -gt 1 ]]; then
+        TIME="minutes"
+      else
+        TIME="minute"
+      fi
+    fi
+    if [[ -n $TIME ]]; then
+      echo "daemon is running (interval: $1 $TIME)"
+      echo "'domainsd stop' to cancel"
+      nohup python3 -m domains_api.async_runner "$1" >/dev/null 2>&1 &
+    else
+      echo "usage: 'domainsd 10' (check every 10 minutes)"
+    fi
+  else
+    echo "Daemon is already running"
+  fi
+fi
