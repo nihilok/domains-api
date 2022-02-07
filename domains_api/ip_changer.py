@@ -5,11 +5,7 @@ from typing import List, Optional
 from requests import get, post
 
 from domains_api import __VERSION__, FileHandlers, User, parser
-from domains_api.constants import (
-    API_RESPONSE_KEYS,
-    API_RESPONSE_HELP_TEXTS,
-    API_RESPONSE_STATUSES,
-)
+from domains_api.constants import api_responses
 from domains_api.exceptions import UserInstanceNotRecognised, UserNotSetup
 
 
@@ -67,11 +63,11 @@ class IPChanger:
     def parse_api_response(self, response: str) -> bool:
         """Parse response from Google Domains API call"""
         key = None
-        for key in API_RESPONSE_KEYS:
+        for key in api_responses.keys():
             if key in response:
                 break
-        help_text = f'API response: {response}{":" + API_RESPONSE_HELP_TEXTS[key] if key is not None else ""}'
-        status = API_RESPONSE_STATUSES[key] if key is not None else False
+        help_text = f'API response: {response}{":" + api_responses[key]["help_text"] if key is not None else ""}'
+        status = api_responses[key]["status"] if key is not None else False
         if not status:
             help_text += (
                 " ...see https://support.google.com/domains/answer/6147083?hl=en-CA "
