@@ -4,40 +4,20 @@ import pickle
 import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Optional
 
 
 class FileHandlers:
-    def __init__(self, path: Optional[str] = None, log_level: str = "info"):
+    def __init__(self, log_level: str = "info"):
         self.log_level = self.set_log_level(log_level)
-        self.path, self.op_sys = self.file_handling(path)
-        self.user_file = os.path.abspath(self.path / "domains.user")
-        self.log_file = str(os.path.abspath(self.path / "domains.log"))
-        if not os.path.exists(self.log_file) or not os.path.exists(self.user_file):
+        self.path = Path(os.path.abspath(os.path.dirname(__file__)))
+        self.user_file = self.path / "domains.user"
+        self.log_path = Path(os.getenv("HOME")) / '.domains-ddns'
+        if not os.path.exists(self.log_path):
             self.make_directories()
         self.sys_log = self.initialize_loggers()
 
-    @staticmethod
-    def file_handling(path: Optional[str] = None):
-        if os.name == "nt":
-            path = path or "domains"
-            path = Path(os.getenv("LOCALAPPDATA")) / path
-            op_sys = "nt"
-        else:
-            path = path or ".domains"
-            path = Path(os.path.abspath(os.getenv("HOME"))) / path
-            op_sys = "pos"
-        return path, op_sys
-
     def make_directories(self):
-        os.makedirs(self.path, exist_ok=True)
-
-    @staticmethod
-    def file_or_dir(path):
-        if os.path.isdir(path):
-            os.chmod(path, 0o770)
-        elif os.path.isfile(path):
-            os.chmod(path, 0o665)
+        os.makedirs(self.log_path, exist_ok=True)
 
     def initialize_loggers(self):
         sys_log = logging.getLogger("Domains DDNS API")
@@ -49,7 +29,7 @@ class FileHandlers:
             level = logging.INFO
         sys_log.setLevel(level)
         fh = RotatingFileHandler(
-            self.log_file,
+            f'{self.log_path}/domains.log',
             mode="a",
             maxBytes=100 * 1024,
             backupCount=2,
@@ -86,19 +66,16 @@ class FileHandlers:
         return self.log_level
 
     def save_user(self, user):
-        """Pickle (serialize) user instance."""
         with open(self.user_file, "wb") as pickle_file:
             pickle.dump(user, pickle_file)
         self.log("User saved.", "debug")
 
     @staticmethod
     def load_user(user_file):
-        """Unpickle (deserialize) user instance."""
         with open(user_file, "rb") as pickle_file:
             return pickle.load(pickle_file)
 
     def delete_user(self):
-        """Delete user pickle file (serialized user instance)."""
         if (
             input("Are you sure you want to delete the current user? [Y/n] ").lower()
             == "n"
@@ -110,14 +87,6 @@ class FileHandlers:
             "Run the script without options to create a new user, or "
             '"domains-api -l path/to/pickle" to load one from file'
         )
-
-    def clear_logs(self):
-        with open(self.log_file, "r") as r:
-            lines = r.readlines()
-            if len(lines) > 100:
-                tail = r.readlines()[-10:]
-                with open(self.log_file, "w") as w:
-                    w.writelines(tail)
 
 
 if __name__ == "__main__":

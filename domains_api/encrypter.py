@@ -1,8 +1,9 @@
 import os
+from pathlib import Path
 
 from cryptography.fernet import Fernet
 
-file = os.path.join(os.path.dirname(__file__), "fnet")
+file = Path(os.getenv("HOME")) / '.domains-ddns' / "fnet"
 
 if not os.path.exists(file):
     key = Fernet.generate_key()
