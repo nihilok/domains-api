@@ -1,9 +1,12 @@
 import logging
 import os
+import shutil
 import pickle
 import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+
+from domains_api.constants import HOME_PATH_DIR_NAME
 
 
 class FileHandlers:
@@ -11,13 +14,23 @@ class FileHandlers:
         self.log_level = self.set_log_level(log_level)
         self.path = Path(os.path.abspath(os.path.dirname(__file__)))
         self.user_file = self.path / "domains.user"
-        self.log_path = Path(os.getenv("HOME")) / '.domains-ddns'
+        self.home_path = Path(os.getenv("HOME"))
+        self.log_path = self.home_path / HOME_PATH_DIR_NAME
+
+        if not os.path.exists(self.user_file):
+            self._migrate_old_versions()
         if not os.path.exists(self.log_path):
             self.make_directories()
         self.sys_log = self.initialize_loggers()
 
     def make_directories(self):
         os.makedirs(self.log_path, exist_ok=True)
+
+    def _migrate_old_versions(self):
+        self.make_directories()
+        os.system(f'mv {self.home_path / ".domains" / "domains.user"} {self.path}')
+        os.system(f'mv {self.home_path / ".domains" / "domains.log"} {self.log_path}')
+        shutil.rmtree(self.home_path / '.domains')
 
     def initialize_loggers(self):
         sys_log = logging.getLogger("Domains DDNS API")
@@ -29,7 +42,7 @@ class FileHandlers:
             level = logging.INFO
         sys_log.setLevel(level)
         fh = RotatingFileHandler(
-            f'{self.log_path}/domains.log',
+            self.log_path / 'domains.log',
             mode="a",
             maxBytes=100 * 1024,
             backupCount=2,
