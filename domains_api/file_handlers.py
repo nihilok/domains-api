@@ -8,8 +8,8 @@ from typing import Optional
 
 
 class FileHandlers:
-    def __init__(self, path: Optional[str] = None):
-        self.log_level = self.set_log_level()
+    def __init__(self, path: Optional[str] = None, log_level: str = "info"):
+        self.log_level = self.set_log_level(log_level)
         self.path, self.op_sys = self.file_handling(path)
         self.user_file = os.path.abspath(self.path / "domains.user")
         self.log_file = str(os.path.abspath(self.path / "domains.log"))
