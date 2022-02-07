@@ -27,6 +27,6 @@ else
       echo "usage: 'domainsd 10' (check every 10 minutes)"
     fi
   else
-    echo "Daemon is already running"
+    echo "daemon is already running"
   fi
 fi
