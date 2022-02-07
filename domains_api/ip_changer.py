@@ -11,7 +11,7 @@ from domains_api.exceptions import UserInstanceNotRecognised, UserNotSetup
 
 class IPChanger:
 
-    fh = FileHandlers()
+    fh = FileHandlers(log_level="debug")
 
     def __init__(self, argv: Optional[List[str]] = None, cli: bool = False):
         self.user: Optional[User] = None
