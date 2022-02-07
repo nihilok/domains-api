@@ -4,7 +4,8 @@ from typing import List, Optional
 
 from requests import get, post
 
-from domains_api import __VERSION__, FileHandlers, User, api_responses, parser
+from domains_api import __VERSION__, FileHandlers, User, parser
+from domains_api.constants import api_responses
 from domains_api.exceptions import UserInstanceNotRecognised, UserNotSetup
 
 
@@ -38,7 +39,7 @@ class IPChanger:
                 raise UserInstanceNotRecognised
             self.user = User.update_user_instance(user)
             self.user.send_notification(clear=True, log_fn=self.fh.log)
-        except Exception:
+        except UserInstanceNotRecognised:
             self.check_user()
 
     @staticmethod
@@ -61,19 +62,18 @@ class IPChanger:
 
     def parse_api_response(self, response: str) -> bool:
         """Parse response from Google Domains API call"""
-        keys = api_responses.keys()
-        for key in keys:
+        key = None
+        for key in api_responses.keys():
             if key in response:
-                response_data = api_responses[key]
                 break
-        help_text = f'API response: {response}: {response_data["help_text"]}'
-        status = response_data["status"]
+        help_text = f'API response: {response}{": " + api_responses[key]["help_text"] if key is not None else ""}'
+        status = api_responses[key]["status"] if key is not None else False
         if not status:
             help_text += (
                 " ...see https://support.google.com/domains/answer/6147083?hl=en-CA "
                 "for API documentation"
             )
-        log_type = "info" if status else "warning"
+        log_type = "info" if status else "error"
         self.fh.log(help_text, log_type)
         if "good" in response:
             ip = response.split()[1]
@@ -82,9 +82,9 @@ class IPChanger:
             pass
         else:
             self.user.send_notification(
-                type="error", error=f"{response}: {help_text}", log_fn=self.fh.log
+                msg_type="error", error=f"{response}: {help_text}", log_fn=self.fh.log
             )
-        return not not status
+        return status
 
     def check_user(self):
         if self.user is None:

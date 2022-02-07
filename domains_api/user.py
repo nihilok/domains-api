@@ -76,7 +76,8 @@ class User:
         if outbox is not None:
             box = self.outbox
             for m in box:
-                log_fn(f"Sending message: {m['Subject']}, {len(outbox)=}", "debug")
+                print(type(m))
+                log_fn(f"Sending message: {m['Subject']}, {len(self.outbox)=}", "debug")
                 server.send_message(m)
                 self.outbox.remove(m)
         if message is not None:
@@ -120,7 +121,7 @@ class User:
 
     @staticmethod
     def log_errors(e, log_fn):
-        log_msg = f"{type(e).__name__}: {str(e)}"
+        log_msg = f"{e.__class__.__name__}: {e}"
         log_fn(log_msg, "error")
 
     def create_message(self):
