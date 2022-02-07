@@ -66,7 +66,7 @@ class IPChanger:
         for key in api_responses.keys():
             if key in response:
                 break
-        help_text = f'API response: {response}{":" + api_responses[key]["help_text"] if key is not None else ""}'
+        help_text = f'API response: {response}{": " + api_responses[key]["help_text"] if key is not None else ""}'
         status = api_responses[key]["status"] if key is not None else False
         if not status:
             help_text += (
