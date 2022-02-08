@@ -9,7 +9,9 @@ file = Path(os.getenv("HOME")) / HOME_PATH_DIR_NAME / "fnet"
 if not os.path.exists(file):
     exists = False
     os.makedirs(os.path.dirname(file), exist_ok=True)
-    os.system(f'mv {Path(os.path.abspath(os.path.dirname(__file__))) / "fnet"} {file}')
+    old_file = Path(os.path.abspath(os.path.dirname(__file__))) / "fnet"
+    if os.path.exists(old_file):
+        os.system(f"mv {old_file} {file}")
     if not os.path.exists(file):
         key = Fernet.generate_key()
         with open(file, "wb") as f:
@@ -24,7 +26,3 @@ if exists:
         key = f.read()
 
 encrypter = Fernet(key)
-
-
-def decrypt_password(password: bytes):
-    return encrypter.decrypt(password).decode()
