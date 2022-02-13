@@ -4,21 +4,19 @@ from typing import List, Optional
 
 from requests import get, post
 
-from domains_api import __VERSION__, FileHandlers, User, parser
-from domains_api.constants import api_responses
+from domains_api.constants import api_responses, __VERSION__
 from domains_api.exceptions import UserInstanceNotRecognised, UserNotSetup
+from domains_api.file_handlers import FileHandlers
+from domains_api.user import User
 
 
 class IPChanger:
-
     fh = FileHandlers()
 
-    def __init__(self, argv: Optional[List[str]] = None, cli: bool = False):
+    def __init__(self, cli: bool = False):
         self.user: Optional[User] = None
         self.cli = cli
-        if argv:
-            self.parse_args(argv)
-        elif self.cli:
+        if self.cli:
             self.run()
 
     def run(self):
@@ -34,11 +32,19 @@ class IPChanger:
     def load_user(self, user_file: Optional[str] = None):
         """Load user from file or raise UserException"""
         try:
-            user = self.fh.load_user(user_file or self.fh.user_file)
+            if user_file:
+                user = self.fh.load_user(user_file)
+            else:
+                try:
+                    user = self.fh.load_user(self.fh.user_file)
+                except FileNotFoundError:
+                    return self.user_setup_wizard()
             if not isinstance(user, User):
                 raise UserInstanceNotRecognised
             self.user = User.update_user_instance(user)
             self.user.send_notification(clear=True, log_fn=self.fh.log)
+            if user_file is not None:
+                self.fh.save_user(self.user)
         except UserInstanceNotRecognised:
             self.check_user()
 
@@ -90,62 +96,19 @@ class IPChanger:
         if self.user is None:
             raise UserNotSetup
 
-    def parse_args(self, argv: List[str]):
-        """Parse command line options (domains -h)"""
-        opts = parser.parse_args(argv)
-        if opts.ip:
-            print(self.get_ip())
-            return
-        if opts.version:
-            print(__VERSION__)
-            return
-        if opts.load_user:
-            if input("Are you sure you want to load a new user? [Y/n] ").lower() == "n":
-                return
-            self.load_user(opts.load_user)
-            self.fh.save_user(self.user)
-            self.fh.log("New user loaded", "info")
-            return
-        if opts.profile_wizard:
-            self.user_setup_wizard()
-            return
-        self.load_user()
-        if opts.domain:
-            print(self.user.domain)
-            return
-        if opts.delete_user:
-            self.fh.delete_user()
-            return
-        if opts.email:
-            if self.user.email_wizard():
-                self.fh.save_user(self.user)
-            if not opts.test_email:
-                return
-        if opts.test_email:
-            self.user.send_test_message(self.fh.log)
-            return
-        if opts.notify:
-            notification_state = self.user.toggle_notifications(opts.notify)
-            self.fh.save_user(self.user)
-            log_msg = f"Notification settings changed to {notification_state}"
-            self.fh.log(log_msg, "info")
-            if self.user.email_notifications != "n" and not self.user.gmail_address:
-                self.fh.log("No email user set, running email set up wizard...", "info")
-                self.user.email_wizard()
-                self.fh.save_user(self.user)
-            return
-        if opts.force:
+    def force_change(self, ip: str = None):
+        """Forces a change of IP and saves to the user instance"""
+        if ip is not None:
             self.fh.log("***Forcing API call***", "info")
-            if type(opts.force) == str:
-                pattern = r"(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})"
-                if re.search(pattern, opts.force.strip()):
-                    self.user.last_ip = opts.force
-                    self.fh.log(f"Overriding IP: {opts.force}", "info")
-                    self.fh.save_user(self.user)
-                else:
-                    print(f"'{opts.force}' is not a recognised IPv4 address")
-                    print("Using last IP")
-            self.parse_api_response(self.call_api(self.user.last_ip))
+            pattern = r"(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})"
+            if re.search(pattern, ip.strip()):
+                self.user.last_ip = ip
+                self.fh.log(f"Overriding IP: {ip}", "info")
+                self.fh.save_user(self.user)
+            else:
+                print(f"'{ip}' is not a recognised IPv4 address")
+                print("Using last IP")
+        self.parse_api_response(self.call_api(self.user.last_ip))
 
     def user_setup_wizard(self):
         """Set up user profile from command line input"""

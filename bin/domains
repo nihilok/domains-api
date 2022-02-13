@@ -2,5 +2,10 @@
 import sys
 
 from domains_api.ip_changer import IPChanger
+from domains_api.arg_parser import parser
 
-IPChanger(sys.argv[1:], cli=True)
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        parser.parse_args(sys.argv[1:])
+    else:
+        IPChanger(cli=True)
