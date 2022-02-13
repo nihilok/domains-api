@@ -81,5 +81,5 @@ parser.add_argument(
 
 
 if __name__ == "__main__":
-    parser.parse_args(["--version"])
+    parser.parse_args(["--version", "-i"])
     parser.print_help()

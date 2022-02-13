@@ -30,17 +30,36 @@ class CLIAction(argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, values)
+        if self.non_user_actions.get(self.dest):
+            self.non_user_actions[self.dest]()
+            return
+        self.get_instance()
+        actions = self.get_actions()
+        func = actions[self.dest]
+        if not values:
+            if self.dest in {"force", "notify"}:
+                func(None)
+                return
+            func()
+            return
+        try:
+            func(*values)
+        except FileNotFoundError as e:
+            print(f"{e.__class__.__name__}: {e.__str__()}")
+        except UnpicklingError:
+            e = UserInstanceNotRecognised()
+            print(f"{e.__class__.__name__}: {e.__str__()}")
+
+    def get_instance(self):
         global _instance_singleton
-        global _actions_singleton
         if self.dest not in self.non_user_actions.keys():
             if _instance_singleton is None:
                 _instance_singleton = IPChanger()
                 _instance_singleton.load_user()
-
         self.instance = _instance_singleton
-        if self.non_user_actions.get(self.dest):
-            self.non_user_actions[self.dest]()
-            return
+
+    def get_actions(self):
+        global _actions_singleton
         if not _actions_singleton:
             _actions_singleton = (
                 {
@@ -55,23 +74,7 @@ class CLIAction(argparse.Action):
                 if self.instance is not None
                 else {}
             )
-        actions = _actions_singleton
-        func = actions[self.dest]
-        if values:
-            try:
-                if type(values) is str:
-                    values = [values]
-                func(*values)
-            except FileNotFoundError as e:
-                print(f"{e.__class__.__name__}: {e.__str__()}")
-            except UnpicklingError:
-                e = UserInstanceNotRecognised()
-                print(f"{e.__class__.__name__}: {e.__str__()}")
-
-        elif self.dest in {"force", "notify"}:
-            func(None)
-        else:
-            func()
+        return _actions_singleton
 
     def print_domain(self):
         print(self.instance.user.domain)
