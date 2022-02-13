@@ -6,14 +6,12 @@ class UserException(Exception):
 
 
 class UserInstanceNotRecognised(UserException):
-
     message = (
         "User instance not recognized. The file must represent an instance of User."
     )
 
 
 class UserNotSetup(UserException):
-
     message = (
         "User profile has not been set up.\nEither run from the command line to run the user setup wizard, "
         "or manually set domain and password properties in your application.\n"

@@ -28,9 +28,12 @@ class FileHandlers:
 
     def _migrate_old_versions(self):
         self.make_directories()
-        os.system(f'mv {self.home_path / ".domains" / "domains.user"} {self.path}')
-        os.system(f'mv {self.home_path / ".domains" / "domains.log"} {self.log_path}')
-        shutil.rmtree(self.home_path / '.domains')
+        if os.path.exists(self.home_path / ".domains"):
+            os.system(f'mv {self.home_path / ".domains" / "domains.user"} {self.path}')
+            os.system(
+                f'mv {self.home_path / ".domains" / "domains.log"} {self.log_path}'
+            )
+            shutil.rmtree(self.home_path / ".domains")
 
     def initialize_loggers(self):
         sys_log = logging.getLogger("Domains DDNS API")
@@ -42,7 +45,7 @@ class FileHandlers:
             level = logging.INFO
         sys_log.setLevel(level)
         fh = RotatingFileHandler(
-            self.log_path / 'domains.log',
+            self.log_path / "domains.log",
             mode="a",
             maxBytes=100 * 1024,
             backupCount=2,
