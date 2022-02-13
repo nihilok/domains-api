@@ -52,4 +52,4 @@ api_responses = {
         "You should not attempt another update until your IP address changes.",
     },
 }
-HOME_PATH_DIR_NAME = '.domains-ddns'
+HOME_PATH_DIR_NAME = ".domains-ddns"

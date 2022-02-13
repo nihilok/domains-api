@@ -134,7 +134,7 @@ class User:
         msg = self.create_message()
         msg["Subject"] = "Test Message"
         content = encrypter.encrypt("Hello, world!".encode())
-        msg.set_content(f"{content*9}")
+        msg.set_content(f"{content * 9}")
         try:
             self.send_emails(msg, log_fn=log_fn)
         except Exception as e:

@@ -1,4 +1,3 @@
-from domains_api.arg_parser import parser
 from domains_api.constants import __VERSION__, api_responses
 from domains_api.file_handlers import FileHandlers
 from domains_api.user import User
@@ -10,7 +9,6 @@ __all__ = [
     "api_responses",
     "FileHandlers",
     "IPChanger",
-    "parser",
     "run_at_interval",
     "User",
 ]

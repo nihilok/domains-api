@@ -34,7 +34,7 @@ If reducing downtime is essential, you could increase the frequency of checks to
 
 On Google Domains the default TTL for Dynamic DNS is 1 minute, so checks should never need to be more frequent than this, but unless you expect your external IP to change very frequently, such regular cron jobs might be a slight waste of resources; even so, the script is very light-weight and usually only takes just over a second to run normally on a Raspberry Pi 3 Ubuntu server.
 
-A daemon version of the program is currently in development with v0.4, that will allow you to run the program on a schedule by running `domainsd 30` (check every 30 minutes) and `domains stop` to cancel.
+A daemon version of the program is currently in development with v0.4, that allows you to run the program on a schedule by running `domainsd 30` (check every 30 minutes) and `domainsd stop` to cancel.
 
 The logs are written to both `~/.domains/domains.log` (posix) or `%LOCALAPPDATA%/domains/domains.log` (win), and stdout, so that they also appear in the terminal & crontab log.
 
