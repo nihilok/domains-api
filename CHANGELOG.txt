@@ -1,11 +1,12 @@
 Change Log
 ==========
+0.4.2 (13/02/2022)
+-------------------
+- fix complex command line parsing
+
 0.4.1 (07/02/2022)
 -------------------
 - move user file into __file__ dir to allow for multiple envs
-
-0.4 (07/02/2022)
--------------------
 - own daemon script (background runner)
 
 0.3.10 (01/02/2022)
