@@ -1,10 +1,10 @@
 import re
 from getpass import getpass
-from typing import List, Optional
+from typing import Optional
 
 from requests import get, post
 
-from domains_api.constants import api_responses, __VERSION__
+from domains_api.constants import api_responses
 from domains_api.exceptions import UserInstanceNotRecognised, UserNotSetup
 from domains_api.file_handlers import FileHandlers
 from domains_api.user import User
