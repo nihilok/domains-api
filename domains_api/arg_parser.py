@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser(
     description=f"Domains DDNS API version {__VERSION__}", prog="domains-api"
 )
 parser.add_argument(
-    "-i", "--ip", nargs=0, action=CLIAction, help="show current external IP address"
+    "-i", "--ip", action=CLIAction, help="show current external IP address"
 )
 parser.add_argument(
     "-l",
@@ -54,7 +54,6 @@ parser.add_argument(
     "-d",
     "--domain",
     action=CLIAction,
-    nargs=0,
     help="show the current domain",
 )
 parser.add_argument(
@@ -75,7 +74,6 @@ parser.add_argument(
     "-v",
     "--version",
     action=CLIAction,
-    nargs=0,
     help="show the current version",
 )
 
