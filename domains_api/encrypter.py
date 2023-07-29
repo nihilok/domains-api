@@ -5,11 +5,14 @@ from cryptography.fernet import Fernet
 
 from domains_api.constants import HOME_PATH_DIR_NAME
 
-file = Path(os.getenv("HOME")) / HOME_PATH_DIR_NAME / "fnet"
+if os.name == 'nt':
+    homedir = os.getenv("userprofile")
+else:
+    homedir = os.getenv("HOME")
+file = Path(homedir) / HOME_PATH_DIR_NAME / "fnet"
 if not os.path.exists(file):
     exists = False
     os.makedirs(os.path.dirname(file), exist_ok=True)
-    os.system(f'mv {Path(os.path.abspath(os.path.dirname(__file__))) / "fnet"} {file}')
     if not os.path.exists(file):
         key = Fernet.generate_key()
         with open(file, "wb") as f:
