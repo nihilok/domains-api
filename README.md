@@ -1,6 +1,7 @@
+# Google Domains DDNS API Client
+
 **_With the imminent demise of Google Domains, I have rewritten this tool in Rust to be able to handle both the Google Domains API and the mailinabox custom DNS API. Will aim to add more services in the near future. REPO: https://github.com/nihilok/rust-ddns.git_**
 
-# Google Domains DDNS API Client
 To facilitate running a home web server behind a router without a static IP, this package checks to see if your external IP has changed and automatically updates your Dynamic DNS rules on Google Domains, via the API; also notifies user by email if required.
 
 ### Installation (Python 3.8+):
