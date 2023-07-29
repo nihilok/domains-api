@@ -12,9 +12,13 @@ from domains_api.constants import HOME_PATH_DIR_NAME
 class FileHandlers:
     def __init__(self, log_level: str = "info"):
         self.log_level = self.set_log_level(log_level)
-        self.path = Path(os.path.abspath(os.path.dirname(__file__)))
+        if os.name == 'nt':
+            homedir = os.getenv("userprofile")
+        else:
+            homedir = os.getenv("HOME")
+        self.path = Path(homedir) / HOME_PATH_DIR_NAME
         self.user_file = self.path / "domains.user"
-        self.home_path = Path(os.getenv("HOME"))
+        self.home_path = homedir
         self.log_path = self.home_path / HOME_PATH_DIR_NAME
 
         if not os.path.exists(self.user_file):
@@ -29,10 +33,8 @@ class FileHandlers:
     def _migrate_old_versions(self):
         self.make_directories()
         if os.path.exists(self.home_path / ".domains"):
-            os.system(f'mv {self.home_path / ".domains" / "domains.user"} {self.path}')
-            os.system(
-                f'mv {self.home_path / ".domains" / "domains.log"} {self.log_path}'
-            )
+            shutil.move(self.home_path / ".domains" / "domains.user", self.path)
+            shutil.move(self.home_path / ".domains" / "domains.log", self.log_path)
             shutil.rmtree(self.home_path / ".domains")
 
     def initialize_loggers(self):
